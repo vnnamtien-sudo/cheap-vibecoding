@@ -1,8 +1,6 @@
 # cheap-vibecoding
 
-**English.** A small, dependency-free kit for running many AI coding-agent sessions on one machine without burning money. Four flavours: **Claude Code, OpenAI Codex, Google (Antigravity CLI / Gemini CLI) and DeepSeek** (via Claude Code). It has a hook that stops the agent from dumping whole big files into its context, a shared test queue (one pool for sessions + tests, heavy-suite tiering, a 15-minute circuit breaker, a free-memory floor), scripts that measure where your tokens go, and the rules/prompt templates we use. Measured on our own workstation from the untuned baseline: cost per step **−39%** (10.5 → 6.4 cents), whole-file reads 51% → 16%, deliveries per working hour 3.1 → 5.4 — but cost per delivery went **up** 19% and subagent spend share rose 17% → 44%. Both sides are in the [data report](docs/data-report.md). The numbers in `config/` are tuned for a 64 GB / 24-thread box; **measure and retune for your own machine** (see “按你的电脑调参”). Docs are in Chinese.
-
----
+**简体中文** | [English](README.en.md)
 
 一套让 AI 编程助手**同时开很多路也不乱烧钱**的做法和小工具：钩子、测试排队器、用量查数脚本、规矩和提示词模板。全部是 Node.js 单文件，不装任何依赖。
 
@@ -200,7 +198,7 @@ node tools/test-queue.cjs status
 node tools/test-queue.cjs stats --days 7
 ```
 
-都是只读的，只读本机会话记录（Claude、DeepSeek：`~/.claude/projects`；Codex：`~/.codex/sessions`；Gemini CLI：`~/.gemini/tmp`），不联网。Codex、Gemini、DeepSeek 的美元数要先在脚本的价目里补上你那家的价钱才有意义，token 数不受影响。花费是按价目表估的“等价美元”，不是账单；价目在 `config/stages.example.json` 的 `prices` 里，按你的套餐改。口径见[数据报告第五节](docs/data-report.md#六口径说明)。
+都是只读的，只读本机会话记录（Claude、DeepSeek：`~/.claude/projects`；Codex：`~/.codex/sessions`；Gemini CLI：`~/.gemini/tmp`），不联网。Codex、Gemini、DeepSeek 的美元数要先在脚本的价目里补上你那家的价钱才有意义，token 数不受影响。花费是按价目表估的“等价美元”，不是账单；价目在 `config/stages.example.json` 的 `prices` 里，按你的套餐改。口径见[数据报告第六节](docs/data-report.md#六口径说明)。
 
 ## 改进过程
 

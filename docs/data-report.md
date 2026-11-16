@@ -1,6 +1,6 @@
 # 数据报告：省 TOKEN 的改动到底省了多少
 
-> **English summary.** We measured every Claude Code session on one workstation from the untuned baseline (Sep 14 – Oct 2) to now (Nov 11 night – Nov 16), about 650,000 unique replies. Cost per step (one tool call) fell **10.5 → 6.4 cents (−39%)**, fresh input per step fell 3.67k → 2.08k tokens, whole-file reads fell 51% → 16%, and deliveries per working hour rose 3.1 → 5.4. But cost per delivery rose $16.6 → $19.7, code characters written per dollar fell 2,020 → 1,588, subagent share of spend rose 17% → 44%, and sessions whose context passed 250k tokens rose 33% → 43%. Two thirds of tests that took over 10 minutes were *waiting in the queue*, not running. Per run, a subagent ($5.2) is cheaper than a fresh session ($9.1); we spent too much because we spawned too many. All dollar figures are estimates from a price table, not invoices. We will re-measure the latest change (shared pool + circuit breaker) on Nov 19 and add it here.
+**简体中文** | [English](data-report.en.md)
 
 数据来源：一台工作站上全部 Claude Code 会话记录（主会话 + 子代理），共约 5,800 个记录文件、65 万条不重复的回复。统计脚本就是本仓库的 [`tools/stages.cjs`](../tools/stages.cjs)，你可以拿它量自己的。
 
@@ -74,7 +74,7 @@
 
 同一台机器上我们也用 OpenAI Codex（桌面应用）写同一套系统。各拿用得最多的一天和 11/15 比（Codex 本机 11/2–11/10 没留记录，所以用本机最多的 10/31）。数据由本仓库 `tools/token-usage.cjs --agent codex` 同一套读法算，口径：一步 = 一次模型回复，同一条回复只算一次。
 
-![Codex 与 Claude 对比](images/codex-vs-claude.png)
+![Codex 与 Claude 对比](images/codex-vs-claude.svg)
 
 | | Claude 10/8（最多） | Claude 11/15 | Codex 10/31（最多） | Codex 11/15 |
 |---|---|---|---|---|

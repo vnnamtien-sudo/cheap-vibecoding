@@ -2,3 +2,4 @@ __pycache__/
 *.py[cod]
 .gate/
 .work/
+data/test-queue/

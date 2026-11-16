@@ -1,0 +1,13 @@
+{
+  "referenceOnly": true,
+  "apiFormat": "Anthropic-compatible",
+  "baseUrl": "https://api.deepseek.com/anthropic",
+  "models": {
+    "primary": "deepseek-flash",
+    "opus": "deepseek-v4-pro",
+    "sonnet": "deepseek-flash",
+    "haiku": "deepseek-flash"
+  },
+  "credentialNote": "Set ANTHROPIC_AUTH_TOKEN in private local settings. Do not store its value here.",
+  "effortNote": "Use high for routine work. The API maps xhigh to high."
+}

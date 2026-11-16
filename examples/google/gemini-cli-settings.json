@@ -1,19 +1,5 @@
 {
-  "_readme": "旧版 Gemini CLI（2026-06-18 起个人账号停用，企业版和付费 API 密钥还能用）的钩子：合并进 ~/.gemini/settings.json 或项目的 .gemini/settings.json。timeout 单位是毫秒。照官方文档写，作者没有在本机实测。",
-  "hooks": {
-    "BeforeTool": [
-      {
-        "matcher": "read_file|run_shell_command",
-        "hooks": [
-          { "name": "read-limit", "type": "command", "command": "node /path/to/cheap-vibecoding/hooks/read-limit-hook.cjs --agent gemini", "timeout": 15000 }
-        ]
-      },
-      {
-        "matcher": "run_shell_command",
-        "hooks": [
-          { "name": "test-queue", "type": "command", "command": "node /path/to/cheap-vibecoding/hooks/test-queue-hook.cjs --agent gemini", "timeout": 15000 }
-        ]
-      }
-    ]
+  "model": {
+    "name": "YOUR_CONFIRMED_MODEL_NAME"
   }
 }

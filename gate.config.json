@@ -1,0 +1,258 @@
+{
+  "accountMode": "single",
+  "maxFileLines": 400,
+  "maxFunctionLines": 80,
+  "bannedPatterns": [],
+  "layers": [
+    {
+      "path": "tools",
+      "allow": [
+        "tools",
+        "tools/lib"
+      ]
+    },
+    {
+      "path": "tools/lib",
+      "allow": [
+        "tools/lib"
+      ]
+    },
+    {
+      "path": "hooks",
+      "allow": [
+        "hooks",
+        "hooks/lib",
+        "tools/lib"
+      ]
+    },
+    {
+      "path": "hooks/lib",
+      "allow": [
+        "hooks/lib",
+        "tools/lib"
+      ]
+    },
+    {
+      "path": "docs",
+      "allow": [
+        "docs"
+      ]
+    },
+    {
+      "path": "tests",
+      "allow": [
+        "tests",
+        "tools",
+        "tools/lib",
+        "hooks",
+        "hooks/lib",
+        "docs"
+      ]
+    }
+  ],
+  "testCommand": [
+    "{python}",
+    "tools/targeted-tests.py",
+    "{files}"
+  ],
+  "typeCheckCommand": [],
+  "dataCheckCommand": [],
+  "readLimitLines": 60,
+  "roles": {
+    "claude": {
+      "mainWriter": {
+        "model": "Sonnet 5.5",
+        "tier": "strong",
+        "effort": "high",
+        "alternative": "Opus 5.5"
+      },
+      "lightReview": {
+        "model": "Haiku 5.5",
+        "tier": "light",
+        "effort": "high"
+      },
+      "finalReview": {
+        "model": "Opus 5.5",
+        "tier": "strongest",
+        "effort": "xhigh"
+      },
+      "readOnly": {
+        "model": "Haiku 5.5",
+        "tier": "light",
+        "effort": "high"
+      }
+    },
+    "codex": {
+      "mainWriter": {
+        "model": "",
+        "tier": "strong",
+        "effort": "high"
+      },
+      "lightReview": {
+        "model": "",
+        "tier": "light",
+        "effort": "high"
+      },
+      "finalReview": {
+        "model": "",
+        "tier": "strongest",
+        "effort": "xhigh"
+      },
+      "readOnly": {
+        "model": "",
+        "tier": "light",
+        "effort": "high"
+      }
+    },
+    "deepseek": {
+      "mainWriter": {
+        "model": "",
+        "tier": "strong",
+        "effort": "high"
+      },
+      "lightReview": {
+        "model": "",
+        "tier": "light",
+        "effort": "high"
+      },
+      "finalReview": {
+        "model": "",
+        "tier": "strongest",
+        "effort": "xhigh"
+      },
+      "readOnly": {
+        "model": "",
+        "tier": "light",
+        "effort": "high"
+      }
+    },
+    "gemini": {
+      "mainWriter": {
+        "model": "",
+        "tier": "strong",
+        "effort": "high"
+      },
+      "lightReview": {
+        "model": "",
+        "tier": "light",
+        "effort": "high"
+      },
+      "finalReview": {
+        "model": "",
+        "tier": "strongest",
+        "effort": "xhigh"
+      },
+      "readOnly": {
+        "model": "",
+        "tier": "light",
+        "effort": "high"
+      }
+    }
+  },
+  "readLimit": {
+    "enabled": true
+  },
+  "testQueue": {
+    "mode": "targeted",
+    "timeoutSeconds": 900,
+    "dataDir": ".gate/test-queue",
+    "hookEnabled": false
+  },
+  "stages": {
+    "agent": "claude",
+    "sessionRoots": {},
+    "prices": [],
+    "cacheReadPrice": null,
+    "activeHourMinUSD": 1,
+    "bigContextTokens": 250000,
+    "stages": []
+  },
+  "tokenUsage": {
+    "agent": "claude",
+    "sessionRoots": {},
+    "prices": [],
+    "cacheReadPrice": null
+  },
+  "privacy": {
+    "patterns": []
+  },
+  "testMappings": {
+    "tools/self-check.py": [
+      "tests/test_self_check.py",
+      "tests/test_install_hook.py"
+    ],
+    "tools/init.py": [
+      "tests/test_init.py"
+    ],
+    "tools/targeted-tests.py": [
+      "tests/test_init.py",
+      "tests/test_self_check.py"
+    ],
+    "tools/lib/gate_config.py": [
+      "tests/test_self_check.py",
+      "tests/test_init.py",
+      "tests/test_hooks.py",
+      "tests/test_test_queue.py",
+      "tests/test_usage.py"
+    ],
+    "tools/lib/gate_git.py": [
+      "tests/test_self_check.py"
+    ],
+    "tools/lib/gate_structure.py": [
+      "tests/test_self_check.py"
+    ],
+    "tools/lib/init_detect.py": [
+      "tests/test_init.py"
+    ],
+    "tools/privacy-scan.py": [
+      "tests/test_privacy.py"
+    ],
+    "tools/install-hook.py": [
+      "tests/test_install_hook.py"
+    ],
+    "hooks/": [
+      "tests/test_hooks.py"
+    ],
+    "tools/test-queue.py": [
+      "tests/test_test_queue.py",
+      "tests/test_hooks.py"
+    ],
+    "tools/lib/process_runner.py": [
+      "tests/test_self_check.py",
+      "tests/test_test_queue.py"
+    ],
+    "tools/lib/queue_runtime.py": [
+      "tests/test_test_queue.py"
+    ],
+    "tools/lib/sessions.py": [
+      "tests/test_usage.py",
+      "tests/test_test_queue.py"
+    ],
+    "tools/stages.py": [
+      "tests/test_usage.py"
+    ],
+    "tools/token-usage.py": [
+      "tests/test_usage.py"
+    ],
+    "docs/make-charts.py": [
+      "tests/test_charts.py"
+    ],
+    "tests/__init__.py": [
+      "tests/test_self_check.py",
+      "tests/test_init.py",
+      "tests/test_hooks.py",
+      "tests/test_test_queue.py",
+      "tests/test_usage.py",
+      "tests/test_privacy.py",
+      "tests/test_charts.py",
+      "tests/test_install_hook.py"
+    ],
+    "tools/lib/gate_extensions.py": [
+      "tests/test_self_check.py",
+      "tests/test_init.py",
+      "tests/test_hooks.py",
+      "tests/test_test_queue.py",
+      "tests/test_usage.py"
+    ]
+  }
+}

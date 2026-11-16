@@ -1,30 +1,29 @@
 {
-  "_readme": "Claude Code（也用于接 DeepSeek 的 Claude Code）的钩子和档位：合并进 ~/.claude/settings.json（全局）或项目的 .claude/settings.json。把 /path/to/cheap-vibecoding 换成你克隆的位置（Windows 用正斜杠写路径即可）；把 <your-model-id> 换成你实际用的型号 ID，换新型号时给新型号补一项。档位为什么这么设见 docs/effort.md。",
-  "effortLevel": "high",
   "modelSettings": {
-    "<your-model-id>": {
+    "YOUR_CONFIRMED_SONNET_MODEL_ID": {
+      "effortLevel": "high"
+    },
+    "YOUR_CONFIRMED_HAIKU_MODEL_ID": {
       "effortLevel": "high"
     }
   },
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Read|Bash|PowerShell",
+        "matcher": "Read|Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "node /path/to/cheap-vibecoding/hooks/read-limit-hook.cjs",
-            "timeout": 15
+            "command": "python3 hooks/read-limit-hook.py"
           }
         ]
       },
       {
-        "matcher": "Bash|PowerShell",
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "node /path/to/cheap-vibecoding/hooks/test-queue-hook.cjs",
-            "timeout": 15
+            "command": "python3 hooks/test-queue-hook.py"
           }
         ]
       }

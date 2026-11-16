@@ -2,72 +2,58 @@
 
 [简体中文](README.md) | **English**
 
-A few small tools for running **many AI coding-agent sessions at once without burning money**. Works with Claude Code, OpenAI Codex, Google Antigravity and DeepSeek. Plain Node.js scripts, zero dependencies.
+Read only the context needed for the task to save tokens and avoid repeated content.
+Run a local self-check first, then separate implementation and read-only review in the same account to reduce rework.
+Run python3 tools/init.py --root ../my-project to connect your existing Git project in five minutes.
 
-![Cost per step](docs/images/en/cost-per-step.svg)
+Rules are plain text; scripts are optional.
 
-Measured on our own workstation over two months and 650,000 replies:
+Use each component independently: [context skeleton](templates/AGENTS.md), [local self-check](tools/self-check.py), [writing/review templates](templates/dispatch/task.en.md), and [project adaptation prompt](templates/init-prompt.en.md). One person, one account. Tools use Python 3.9+ and its standard library, with no third-party packages.
 
-- **Cost per step −39%**: 10.5 → 6.4 cents (a step = one tool call)
-- **Whole-file reads 51% → 16%**: done by a hook; writing "read less" in the rules never moved it
-- **67% of "stuck" tests were just waiting in line**: so sessions and tests now share one pool
+## Four platforms × four roles
 
-## What's inside
+| Role | Claude Code | OpenAI Codex | DeepSeek (Claude Code API) | Gemini CLI |
+|---|---|---|---|---|
+| Main writer | Sonnet 5.5 / high; Opus 5.5 optional | Strongest tier (fill in model) / high | Strongest tier (fill in model) / high | Strongest tier (fill in model) / high |
+| Light review | Haiku 5.5 / high | Lightweight tier (fill in model) / high | Lightweight tier (fill in model) / high | Lightweight tier (fill in model) / high |
+| Final review | Opus 5.5 / xhigh; only for money calculations, major refactors, or releases | Strongest tier (fill in model) / xhigh (confirm support); only for those cases | Strongest tier (fill in model) / xhigh (confirm support); only for those cases | Strongest tier (fill in model) / xhigh (confirm support); only for those cases |
+| Read-only | Haiku 5.5 / high | Lightweight tier (fill in model) / high | Lightweight tier (fill in model) / high | Lightweight tier (fill in model) / high |
 
-| File | What it does |
-|---|---|
-| `hooks/read-limit-hook.cjs` | No dumping whole big files; at most 60 lines at a time, and it hands back the fixed command |
-| `hooks/test-queue-hook.cjs` + `tools/test-queue.cjs` | Tests must queue: one pool for sessions and tests, full-suite tiering, 15-minute circuit breaker, free-memory floor |
-| `tools/token-usage.cjs`, `tools/stages.cjs` | Where the money goes; before/after comparison split by the dates you changed your rules |
+Start each light review in a fresh session with no prior conversation. Read-only roles do not edit files. DeepSeek's official API maps xhigh to high, so it is not an xhigh tier; Gemini CLI generation settings must be confirmed for each model. The user fills in unverified model names in platform settings. Use high for routine execution. Reserve xhigh for the final reviews above. Do not use max or medium as execution tiers. When usage is tight, use a lightweight model for small tasks, batch non-urgent work, or pause non-urgent tasks. Do not set CLAUDE_CODE_EFFORT_LEVEL as a global effort setting.
 
-Plus a token-saving rules template per agent: `rules/claude/`, `rules/codex/`, `rules/google/`, `rules/deepseek/`.
+## Five-minute setup
 
-## Set up in five minutes
+Run these commands from the cloned toolkit repository. The example target is your existing Git project named my-project in a sibling folder; change the source rule and destination in step 1 for your platform.
 
-1. Clone this repo and run the self-test: `npm test` (Node.js 18+).
-2. Register the hooks, copying from `examples/<agent>/`:
-   - Claude Code: merge `examples/claude/settings.json` into `~/.claude/settings.json`
-   - Codex: put `examples/codex/hooks.json` at `~/.codex/hooks.json`, then trust it in `/hooks` (**untrusted hooks are skipped silently**)
-   - Google Antigravity: put `examples/google/hooks.json` at `.agents/hooks.json` in your project
-   - DeepSeek: same hooks as Claude Code; start with the script in `examples/deepseek/`
-   Replace `/path/to/cheap-vibecoding` with where you cloned it; the `_readme` key is a note, leave it out.
-3. Paste `rules/<agent>/` at the top of the rules file your agent reads.
-4. Adjust `config/test-queue.json` using the next section.
-5. Try it: ask the agent to read a 300-line file whole, and to run a test directly. Both should be blocked.
+1. Copy a rule into the target project (Codex example):
 
-How far each agent goes (hooks, usage stats, what we actually tested): [docs/agents.en.md](docs/agents.en.md).
+   ~~~sh
+   python3 -c "from pathlib import Path; import shutil; shutil.copy2(Path('rules/codex/AGENTS.md'), Path('../my-project/AGENTS.md'))"
+   ~~~
 
-## Tune for your machine
+2. Create the target project's gate.config.json:
 
-The defaults are tuned for our 64 GB / 24-thread box. **Don't copy them.** Starting points:
+   ~~~sh
+   python3 tools/init.py --root ../my-project
+   ~~~
 
-| RAM | Pool `slots` | Min test slots | Max full suites | Free-memory floor GB | Breaker minutes |
-|---|---|---|---|---|---|
-| 16 GB | 6 | 1 | 1 | 3 | 10 |
-| 32 GB | 10 | 2 | 1 | 5 | 15 |
-| 64 GB | 20 | 2 | 2 | 8 | 15 |
+3. Run a local self-check on the target project:
 
-After two or three days run `node tools/test-queue.cjs stats --days 3` and adjust. Details: [docs/tuning.en.md](docs/tuning.en.md).
+   ~~~sh
+   python3 tools/self-check.py --root ../my-project
+   ~~~
 
-## Measure your own
+init.py and self-check.py are in this repository; --root points to the target project. Initialization preserves existing files by default; add --force only when you intend to overwrite them. On Windows, if python3 is unavailable, use py -3. For the optional Git hook, install-hook.py accepts python or py with --python-command. See [gate configuration](docs/gate-config.en.md), [read on demand](docs/read-on-demand.en.md), and [effort guidance](docs/effort.en.md).
 
-```bash
-node tools/token-usage.cjs --days 7                 # last 7 days: spend, share spent re-reading context
-node tools/token-usage.cjs --agent codex --days 7   # another agent: codex / gemini (old Gemini CLI only) / deepseek / all
-node tools/stages.cjs --stages config/stages.example.json --agent claude   # compare periods split by your rule-change dates (edit the dates first)
-node tools/test-queue.cjs status                    # test queue
-```
+## Platform rules and examples
 
-Read-only, local transcripts only, no network. Note: the tools and hooks print their messages in Chinese.
+| Platform | Rule template | Configuration example |
+|---|---|---|
+| Claude Code | [CLAUDE.md](rules/claude/CLAUDE.en.md) | [settings.json](examples/claude/settings.json) |
+| Codex | [AGENTS.md](rules/codex/AGENTS.en.md) | [config.toml](examples/codex/config.toml) |
+| DeepSeek | [CLAUDE.md](rules/deepseek/CLAUDE.en.md) | [API reference values](examples/deepseek/reference.json) |
+| Gemini CLI | [GEMINI.md](rules/google/GEMINI.en.md) | [settings.json](examples/google/gemini-cli-settings.json) |
 
-## Honestly: the total bill did not go down
+The Claude Code, Codex, and Gemini CLI examples contain placeholder model IDs; replace them with confirmed IDs before use. To enable Claude's native hooks, copy the hooks and tools/lib directories into the project root. On Windows, if python3 is unavailable, change the hook command to python or py. Using only a rule file requires no runtime. Self-checks, targeted tests, and the Git hook are optional. See gate.config.example.json and [gate configuration](docs/gate-config.en.md) for fields and local data locations. Read [advanced configuration](docs/advanced.en.md) only when running multiple sessions or coordinating multiple people.
 
-Unit cost fell 40%, but total cost per delivery did not (16.6 → 19.7 USD). Split it and **main sessions got 20% cheaper per delivery; the whole increase is subagents**. About 40% of subagent spend went to reviews, and **about one review in three sent the work back**, mostly because the author had not compared against the old system on real data, had not run the tests, or guessed instead of reading the old code (reviewers got it wrong only twice). The root cause is rework after mistakes, not too many reviews. Lesson: the number of sessions and subagents is the master switch; a cheaper unit cost is not a smaller bill. Next we go after the rework. Full numbers and method: [data report](docs/data-report.en.md).
-
-## More
-
-- [How to set the effort level](docs/effort.en.md) (only high / xhigh, and the data behind not using the top level)
-- [How we got here](docs/history.en.md) (step by step, including the wrong turns)
-- [Data report](docs/data-report.en.md)
-
-[MIT](LICENSE)
+Results vary by computer, model and project. The [historical report](docs/data-report.en.md) preserves its original numbers; they are not a promise for another project.

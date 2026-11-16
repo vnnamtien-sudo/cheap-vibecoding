@@ -1,37 +1,25 @@
-<!-- Copy this into your AGENTS.md. -->
-# Usage-saving rules (OpenAI Codex: paste at the top of AGENTS.md in the project root or ~/.codex/AGENTS.md)
+# Codex project rules
 
-<!-- By default Codex reads at most 32 KiB of AGENTS.md across all levels combined (project_doc_max_bytes), so keep the rules short. Change the numbers in [ ] to fit your project and machine. Codex supports PreToolUse hooks; set up read line limits and the test queue following examples/codex/hooks.json — that works much better than written rules alone. -->
+Place this file in the project root as AGENTS.md.
 
-## Where the money goes
+## Working method
 
-- Quota is charged by price: most of the money goes to fresh input and to output. Don't repeat output; when editing a file, change only the lines that need it, don't rewrite the whole file.
-- Don't compact context early: we measured that compacting early or handing off early doesn't save money, and it loses detail.
+- Start with a clear goal, allowed scope, and completion criteria.
+- Search for files and symbols before reading sections. Read no more than 60 lines at a time. Save full command output to a temporary file and print only conclusions.
+- Inspect the current implementation and callers before making the smallest change that meets the goal. Preserve existing behavior and data formats.
+- After writing, the implementer runs the local self-check first: `python3 <toolkit>/tools/self-check.py --root .` (`py -3` on Windows), and hands over for review only when it passes; optionally run `tools/install-hook.py` to self-check before every Git commit. Record the command, result, and anything not run.
+- Run light acceptance in a fresh session with no implementation context. Review changes, criteria, and evidence in read-only mode.
+- Report only evidence-backed defects with file location, impact, and evidence. Mark unsupported assumptions as unconfirmed.
 
-## Read less at the source
+## Four platforms × four roles
 
-1. Search before reading: Codex reads files through the shell: find line numbers with `rg -n` first, then read only that range with `sed -n 'a,bp'` (in PowerShell, `Get-Content -TotalCount` or `Select-Object -Skip -First`); read only the target snippet, ≤ [60] lines each time; don't read code or data files over [150] lines in full, and don't dump them whole with `cat` / `Get-Content` (a hook blocks this).
-2. Send command output to disk: write the full output of data lookups, reconciliations, tests and batch checks to a temp file and print only the conclusion on screen, ≤ [15] lines. Don't dump long lists or whole error traces into the conversation.
-3. To check old logic across many files, spawn a one-off subagent to read, returning only a conclusion of ≤ [100] words; subagents don't spawn subagents. Do small lookups yourself by line range; don't spawn at the slightest reason.
-4. In a large codebase, check an index first (file map, function directory); don't search the whole repo.
+| Role | Claude Code | OpenAI Codex | DeepSeek (Claude Code API) | Gemini CLI |
+|---|---|---|---|---|
+| Main writer | Sonnet 5.5 / high; Opus 5.5 optional | Strongest tier (fill in model) / high | Strongest tier (fill in model) / high | Strongest tier (fill in model) / high |
+| Light review | Haiku 5.5 / high | Lightweight tier (fill in model) / high | Lightweight tier (fill in model) / high | Lightweight tier (fill in model) / high |
+| Final review | Opus 5.5 / xhigh; only for money calculations, major refactors, or releases | Strongest tier (fill in model) / xhigh (confirm support); only for those cases | Strongest tier (fill in model) / xhigh (confirm support); only for those cases | Strongest tier (fill in model) / xhigh (confirm support); only for those cases |
+| Read-only | Haiku 5.5 / high | Lightweight tier (fill in model) / high | Lightweight tier (fill in model) / high | Lightweight tier (fill in model) / high |
 
-## One task, one conversation
+Use high for routine execution and light read-only review. Reserve xhigh for the final reviews above. DeepSeek's official API maps xhigh to high, so it is not an xhigh tier; Gemini CLI generation settings must be confirmed for each model. Do not use max or medium as execution tiers. Start each light review in a fresh session. The user fills in unverified model IDs in actual platform settings.
 
-5. Start a fresh conversation for each task, bringing only: the plan file, the list of files to change, and the definition of done. Don't read old conversations; write fresh from the plan.
-6. Each leg delivers one small feature that can be verified on its own (read, write, API or page, tests — all four). When context reaches about [250k] tokens or a loop is closed, write a one-page handoff (exact numbers, changed files, where to pick up next) and switch to a fresh conversation.
-7. Fix the scope when the work is assigned; anything you want to add midway becomes a separate ticket. Only one line of work changes a given module at a time.
-
-## Effort level
-
-8. Use only two effort levels: high for writing code, writing docs and read-only checks; xhigh for verification reviews, money and ledger calculations, and large refactors. Don't use max (much more expensive, little extra output); don't use medium (rework costs more). Set `model_reasoning_effort = "high"` in `~/.codex/config.toml`, and switch a verification-review conversation to xhigh after opening it.
-
-## Tests
-
-9. Always run tests through the queue: `node <cheap-vibecoding dir>/tools/test-queue.cjs run --label <label> -- <command>` (a hook blocks unqueued runs).
-10. During development, run only the test files or cases related to the change (target: under 30 seconds); run the full test suite / whole module only at merge and verification review.
-11. For new tests, keep one happy-path case plus counterexamples for things that cause real damage (wrong money, messages sent wrongly); don't chase coverage.
-
-## Verification review
-
-12. A verification review blocks only three kinds of issue: wrong money or ledger figures, messages sent wrongly, and blocking business that is in use. Each needs a real, reachable counterexample; everything else is noted for the next version.
-13. The second review round checks only the items from the first round; don't re-review from scratch.
+See the [effort guide](../../docs/effort.en.md) and [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference).

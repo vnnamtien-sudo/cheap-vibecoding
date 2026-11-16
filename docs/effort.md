@@ -1,17 +1,12 @@
-# 思考档位怎么设
+# 思考档位怎么用
 
-[← 回到 README](../README.md)
+[← 返回 README](../README.md)
 
-各家的“思考档位”（Claude Code 叫 effort，Codex 叫 reasoning effort）越高，每一步想得越多、写出越多，也越贵。我们的建议：**只用 high 和 xhigh 两档，不开 max，也不用 medium。**
+日常写代码、写文档、只读核对和轻验收使用 high。xhigh 只用于最终核验钱、重大重构或发布。执行时不使用 max 或 medium。轻验收使用新会话，不带实现前文。
 
-| 什么活 | 档位 | 为什么 |
-|---|---|---|
-| 写代码、改 bug、写文档、只读核对、查数 | **high** | 日常主力，够用 |
-| 验收 / 复查、算钱算账的程序、大重构、子代理做验收 | **xhigh** | 这类活出了错返工更贵，档位往高放 |
-| 任何活 | ~~max~~ 不开 | 我们量过：全开最高档那段，每步只便宜了 7%，但每天花费翻了 3.2 倍、每份交付贵了 40%、上下文超 25 万的会话从 33% 涨到 75% |
-| 任何活 | ~~medium~~ 不用 | 没单独量过，是取舍：省下的钱抵不过想得不够造成的返工 |
+## 历史实测
 
-我们量到的数据（详见[数据报告](data-report.md)）：
+以下是历史阶段记录，不是新项目的费用承诺；原始数据见[数据报告](data-report.md)。
 
 | 阶段 | 每步花费 | 每天花费 | 每份交付 | 上下文超 25 万 |
 |---|---|---|---|---|
@@ -19,26 +14,22 @@
 | 全开最高档（max） | 9.8 美分 | 约 1,270 美元 | 23.3 美元 | 75% |
 | 只用 high / xhigh 之后 | 7.5 美分 | — | 10.1 美元 | 45% |
 
-（“只用 high / xhigh”那段只有 1 天，样本小，只看方向。）
+“只用 high / xhigh”阶段只有 1 天，样本小，只看方向。
 
-**Codex**：`~/.codex/config.toml` 写 `model_reasoning_effort = "high"`，验收的对话开出来调到 xhigh；不开 max、ultra。**谷歌 Antigravity**：`/effort high`。**DeepSeek（经 Claude Code）**：同下面 Claude Code 的设法；DeepSeek 官方示例里设了 `CLAUDE_CODE_EFFORT_LEVEL=max`，原因见第 5 条，我们的启动脚本把它注释掉了。
+## 平台设置
 
-**Claude Code** 怎么设（以你所用版本的官方文档为准）：
+型号名称和档位支持随平台、账户和客户端而异；只填已确认的型号 ID，并检查当前型号支持的档位。
 
-1. **全局默认**：在 `~/.claude/settings.json` 里写 `"effortLevel": "high"`。
-2. **按型号再写一遍**：我们这一版里，顶层 `effortLevel` 对新型号不生效，定时任务设的是 xhigh、实际跑的却是 medium，直到加了按型号的设置才对上。所以建议两处都写：
+- Claude Code：用 /model 选择型号，用 /effort high 设置该型号的日常档位；Claude Code 将已选档位按型号保存在 settings.json 的 modelSettings 中。重大最终验收可在新会话中使用 /effort xhigh。不要设置 CLAUDE_CODE_EFFORT_LEVEL 统一会话档位。
+- Codex：在 config.toml 中设置已确认的 model 和 model_reasoning_effort = "high"。最终验收只有在型号明确支持 xhigh 时才使用。
+- Gemini CLI：用 /model 或 settings.json 的 model.name 选择已确认型号。生成参数按该型号文档配置；Gemini CLI 的参数不是通用 high / xhigh 字符串。
+- DeepSeek：官方 API 接受 high 和 max，并将 xhigh 映射为 high。因此它的 xhigh 设置不能承担 xhigh 最终验收；应由用户选定确实支持 xhigh 的型号与平台。日常可以使用 high。
 
-   ```json
-   {
-     "effortLevel": "high",
-     "modelSettings": {
-       "<你用的型号 ID>": { "effortLevel": "high" }
-     }
-   }
-   ```
+额度紧时用轻量型号处理轻活、合并非急工作，或暂停不急的任务。平台的具体设置方式请看官方文档：
 
-   换新型号时记得给新型号补一项。
-3. **单个会话临时调**：在会话里用 `/effort xhigh`，或在桌面应用输入框旁边选。验收类会话开出来就调到 xhigh。
-4. **派子代理时写明档位**：做验收的子代理给 xhigh，其余 high；不写就跟着默认走。
-5. **不要设环境变量 `CLAUDE_CODE_EFFORT_LEVEL`**：它会把所有会话压成同一档，按会话、按子代理单独设的档位都失效。
-6. **设完要核对**：看会话记录或用量页面，确认实际跑的档位和你设的一样。我们就是核对时才发现定时任务一直跑在 medium。
+- [Claude Code model configuration](https://code.claude.com/docs/en/model-config) · [Claude Code settings](https://code.claude.com/docs/en/settings)
+- [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
+- [Gemini CLI configuration](https://github.com/google-gemini/gemini-cli/blob/main/docs/reference/configuration.md) · [generation settings](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/generation-settings.md)
+- [DeepSeek thinking mode](https://api-docs.deepseek.com/guides/thinking_mode/) · [Claude Code integration](https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code/)
+
+例子见 examples 目录。设置前由用户确认实际型号和本地配置入口。

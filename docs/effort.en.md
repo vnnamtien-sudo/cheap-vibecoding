@@ -1,17 +1,12 @@
-# How to set the effort level
+# How to use effort levels
 
 [← Back to README](../README.en.md)
 
-The higher each agent's effort level (Claude Code calls it effort, Codex calls it reasoning effort), the more each step thinks and writes, and the more it costs. Our recommendation: **use only high and xhigh; don't use max, and don't use medium.**
+Use high for routine code and documentation work, read-only checks, and light review. Reserve xhigh for final review of money calculations, major refactors, or releases. Do not use max or medium as execution tiers. Start light reviews in fresh sessions without implementation context.
 
-| Work | Effort level | Why |
-|---|---|---|
-| Writing code, fixing bugs, writing docs, read-only checks, querying numbers | **high** | The everyday workhorse; good enough |
-| Verification review / re-checks, programs that compute money and accounts, big refactors, subagents doing verification review | **xhigh** | Mistakes here are more expensive to redo, so set effort higher |
-| Any work | ~~max~~ off | We measured: in the period with max on everywhere, each step was only 7% cheaper, but daily spend went up 3.2×, cost per delivery went up 40%, and sessions with context over 250k went from 33% to 75% |
-| Any work | ~~medium~~ not used | Not measured separately; a trade-off: the savings don't cover the rework caused by not thinking enough |
+## Historical measurements
 
-What we measured (details in the [data report](data-report.en.md)):
+These are historical measurements, not a cost promise for a new project. See the [data report](data-report.en.md) for the source data.
 
 | Period | Cost per step | Spend per day | Cost per delivery | Context over 250k |
 |---|---|---|---|---|
@@ -19,26 +14,22 @@ What we measured (details in the [data report](data-report.en.md)):
 | Max effort everywhere | 9.8 cents | about $1,270 | $23.3 | 75% |
 | After switching to high / xhigh only | 7.5 cents | — | $10.1 | 45% |
 
-(The "high / xhigh only" period is just 1 day; the sample is small, so only read the direction.)
+The “high / xhigh only” period is just 1 day; the sample is small, so use it only as a directional result.
 
-**Codex**: in `~/.codex/config.toml` set `model_reasoning_effort = "high"`, and raise verification-review conversations to xhigh when you open them; don't use max or ultra. **Google Antigravity**: `/effort high`. **DeepSeek (via Claude Code)**: set it the same way as Claude Code below; DeepSeek's official example sets `CLAUDE_CODE_EFFORT_LEVEL=max`; see item 5 for why our launch script comments it out.
+## Platform settings
 
-**Claude Code** (the official docs for your version take precedence):
+Model names and supported effort levels depend on the platform, account, and client. Fill in only confirmed model IDs and check the selected model's supported levels.
 
-1. **Global default**: put `"effortLevel": "high"` in `~/.claude/settings.json`.
-2. **Set it again per model**: in our version, the top-level `effortLevel` did not apply to newer models. A scheduled task was set to xhigh but actually ran at medium, until we added the per-model setting. So we recommend setting both:
+- Claude Code: choose a model with /model and set its routine effort with /effort high. Claude Code saves selected effort by model under modelSettings in settings.json. For a high-stakes final review, use /effort xhigh in a fresh session. Do not set CLAUDE_CODE_EFFORT_LEVEL to flatten session effort.
+- Codex: set a confirmed model and model_reasoning_effort = "high" in config.toml. Use xhigh for final review only when the selected model explicitly supports it.
+- Gemini CLI: choose a confirmed model with /model or model.name in settings.json. Configure generation parameters only as documented for that model; Gemini CLI does not use universal high / xhigh strings.
+- DeepSeek: its official API accepts high and max, and maps xhigh to high. Therefore its xhigh setting cannot provide an xhigh final-review tier. The user must select a model and platform that truly support xhigh for that role. Routine work can use high.
 
-   ```json
-   {
-     "effortLevel": "high",
-     "modelSettings": {
-       "<your model ID>": { "effortLevel": "high" }
-     }
-   }
-   ```
+When usage is tight, use a lightweight model for small tasks, batch non-urgent work, or pause non-urgent tasks. Check the official platform documentation for setup details:
 
-   When you switch to a new model, remember to add an entry for it.
-3. **Per-session override**: use `/effort xhigh` in the session, or pick it next to the input box in the desktop app. Set verification-review sessions to xhigh as soon as they open.
-4. **State the effort level when launching subagents**: xhigh for subagents doing verification review, high for the rest; if you don't set it, it follows the default.
-5. **Don't set the environment variable `CLAUDE_CODE_EFFORT_LEVEL`**: it forces every session to the same level, and per-session and per-subagent settings stop working.
-6. **Verify after setting it**: check session logs or the usage page to confirm the level actually running matches what you set. That's how we found our scheduled tasks had been running at medium all along.
+- [Claude Code model configuration](https://code.claude.com/docs/en/model-config) · [Claude Code settings](https://code.claude.com/docs/en/settings)
+- [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
+- [Gemini CLI configuration](https://github.com/google-gemini/gemini-cli/blob/main/docs/reference/configuration.md) · [generation settings](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/generation-settings.md)
+- [DeepSeek thinking mode](https://api-docs.deepseek.com/guides/thinking_mode/) · [Claude Code integration](https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code/)
+
+See the examples directory. The user confirms the actual model and local settings entry before applying a configuration.

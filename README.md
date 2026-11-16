@@ -2,72 +2,58 @@
 
 **简体中文** | [English](README.en.md)
 
-让 AI 编程助手**同时开很多路也不乱烧钱**的几件小工具。Claude Code、OpenAI Codex、谷歌 Antigravity、DeepSeek 都能用；纯 Node.js 脚本，零依赖。
+按需读取上下文，减少重复内容，省 Token。
+先运行本地 self-check 挡住改动错误，再在同一账号里分开写入与只读验收，降低返工。
+运行 python3 tools/init.py --root ../my-project，五分钟接入你已有的 Git 项目。
 
-![每一步花费](docs/images/cost-per-step.svg)
+规矩是纯文字，脚本可选。
 
-在我们自己一台工作站上，两个月、65 万条回复实测：
+四个组件可独立使用：[上下文骨架](templates/AGENTS.md)、[本地自检](tools/self-check.py)、[写审模板](templates/dispatch/task.md)、[项目适配提示](templates/init-prompt.md)。单人单账号即可；Python 工具使用 Python 3.9+ 标准库，不需要第三方包。
 
-- **每一步花费 −39%**：10.5 → 6.4 美分（一步 = 一次工具调用）
-- **整份读大文件 51% → 16%**：靠钩子拦下来的，光在规矩里写“少读”降不下来
-- **测试“卡住”的 67% 其实在排队**：所以会话和测试共用一个总池统一放行
+## 四个平台 × 四个角色
 
-## 里面有什么
+| 角色 | Claude Code | OpenAI Codex | DeepSeek（Claude Code API） | Gemini CLI |
+|---|---|---|---|---|
+| 主写 | Sonnet 5.5 / high；可选 Opus 5.5 | 最强档（填型号）/ high | 最强档（填型号）/ high | 最强档（填型号）/ high |
+| 轻验收 | Haiku 5.5 / high | 轻量档（填型号）/ high | 轻量档（填型号）/ high | 轻量档（填型号）/ high |
+| 最终验收 | Opus 5.5 / xhigh；仅算钱、大重构、发布 | 最强档（填型号）/ xhigh（须确认支持）；仅限以上场景 | 最强档（填型号）/ xhigh（须确认支持）；仅限以上场景 | 最强档（填型号）/ xhigh（须确认支持）；仅限以上场景 |
+| 只读 | Haiku 5.5 / high | 轻量档（填型号）/ high | 轻量档（填型号）/ high | 轻量档（填型号）/ high |
 
-| 文件 | 做什么 |
-|---|---|
-| `hooks/read-limit-hook.cjs` | 大文件不准整份读，一次最多 60 行，拦下时给出改好的命令 |
-| `hooks/test-queue-hook.cjs` + `tools/test-queue.cjs` | 测试必须排队：会话和测试共用总池、整套测试分级、15 分钟熔断、内存不够不放 |
-| `tools/token-usage.cjs`、`tools/stages.cjs` | 查钱花在哪；按你改规矩的日期切段，比改前改后 |
+轻验收使用全新会话，不带前文；只读角色不改文件。DeepSeek 官方 API 会把 xhigh 映射为 high，不能视为 xhigh；Gemini CLI 生成参数按型号确认，不把 high 或 xhigh 当作通用配置键。未核实的型号由你在平台设置中确认，不在模板里猜型号。日常执行使用 high；xhigh 只用于上述最终验收，不用 max 或 medium 作为执行档。额度紧时用轻量型号处理轻活、合并非急工作，或暂停不急的任务。不要设置 CLAUDE_CODE_EFFORT_LEVEL 统一档位。
 
-另有四家各一份省用量规矩模板：`rules/claude/`、`rules/codex/`、`rules/google/`、`rules/deepseek/`。
+## 五分钟三步
 
-## 五分钟装好
+从本工具仓库的克隆目录运行。示例目标是你已有的 Git 项目 my-project，位于本仓库的同级目录；把第一条的规则来源和目标文件改成你使用的平台。
 
-1. 克隆本仓库，跑自测：`npm test`（要 Node.js 18 以上）。
-2. 注册钩子，照你用的那家抄 `examples/<家>/`：
-   - Claude Code：`examples/claude/settings.json` 合并进 `~/.claude/settings.json`
-   - Codex：`examples/codex/hooks.json` 放到 `~/.codex/hooks.json`，再在 `/hooks` 里点信任（**不信任会被静默跳过**）
-   - 谷歌 Antigravity：`examples/google/hooks.json` 放到项目的 `.agents/hooks.json`
-   - DeepSeek：钩子同 Claude Code，用 `examples/deepseek/` 的启动脚本
-   配置里的 `/path/to/cheap-vibecoding` 换成你克隆的位置，`_readme` 那一行是说明、不用抄。
-3. 把 `rules/<家>/` 的规矩贴进它认的规矩文件最上面。
-4. 按下一节改 `config/test-queue.json`。
-5. 试一下：叫助手整份读一个 300 行的文件、直接跑一次测试，两次都应被拦下。
+1. 复制规则到目标项目（以下示例为 Codex）：
 
-四家各能做到哪一步（有没有钩子、用量能不能查、我们实测到哪）：[docs/agents.md](docs/agents.md)。
+   ~~~sh
+   python3 -c "from pathlib import Path; import shutil; shutil.copy2(Path('rules/codex/AGENTS.md'), Path('../my-project/AGENTS.md'))"
+   ~~~
 
-## 按你的电脑调参
+2. 生成目标项目的 gate.config.json：
 
-默认值是按我们 64 GB / 24 线程的机器调的，**别照抄**。起点：
+   ~~~sh
+   python3 tools/init.py --root ../my-project
+   ~~~
 
-| 内存 | 总池 `slots` | 最少测试位 | 整套最多几份 | 空闲内存下限 GB | 熔断分钟 |
-|---|---|---|---|---|---|
-| 16 GB | 6 | 1 | 1 | 3 | 10 |
-| 32 GB | 10 | 2 | 1 | 5 | 15 |
-| 64 GB | 20 | 2 | 2 | 8 | 15 |
+3. 对目标项目做本地自检：
 
-用两三天再跑 `node tools/test-queue.cjs stats --days 3` 看情况调。细节：[docs/tuning.md](docs/tuning.md)。
+   ~~~sh
+   python3 tools/self-check.py --root ../my-project
+   ~~~
 
-## 量你自己的
+init.py 和 self-check.py 在本仓库中；命令通过 --root 指向目标项目。初始化默认不覆盖已有文件，需要覆盖时才显式加 --force。Windows 上若没有 python3 命令，可改用 py -3；选装 Git 提交钩子时，install-hook.py 的 --python-command 可填 python 或 py。更多设置见[门禁配置](docs/gate-config.md)、[按需读取](docs/read-on-demand.md)和[档位建议](docs/effort.md)。
 
-```bash
-node tools/token-usage.cjs --days 7                 # 近 7 天花了多少、多少是重读前文
-node tools/token-usage.cjs --agent codex --days 7   # 换一家：codex / gemini（只认旧 Gemini CLI）/ deepseek / all
-node tools/stages.cjs --stages config/stages.example.json --agent claude   # 按你改规矩的日期切段比（先改配置里的日期）
-node tools/test-queue.cjs status                    # 测试排队情况
-```
+## 平台规则与配置
 
-只读本机会话记录，不联网。
+| 平台 | 规则模板 | 配置示例 |
+|---|---|---|
+| Claude Code | [CLAUDE.md](rules/claude/CLAUDE.md) | [settings.json](examples/claude/settings.json) |
+| Codex | [AGENTS.md](rules/codex/AGENTS.md) | [config.toml](examples/codex/config.toml) |
+| DeepSeek | [CLAUDE.md](rules/deepseek/CLAUDE.md) | [API 参考值](examples/deepseek/reference.json) |
+| Gemini CLI | [GEMINI.md](rules/google/GEMINI.md) | [settings.json](examples/google/gemini-cli-settings.json) |
 
-## 照实说：总账没省下来
+Claude Code、Codex 和 Gemini CLI 配置示例中的型号 ID 是占位值，使用前要替换成你已确认的型号。启用 Claude 原生钩子时，需把 hooks 和 tools/lib 目录复制到项目根目录；Windows 若无 python3 命令，可在设置中改为 python 或 py。只用规则文件不需要运行时。自检、定向测试和 Git 提交钩子是可选的；详细字段和本地数据位置见 gate.config.example.json 与[配置说明](docs/gate-config.md)。多人或多会话并行时再看[高级配置](docs/advanced.md)。
 
-单价降了四成，但每份活的总花费没降（16.6 → 19.7 美元）。拆开看：**主会话每份活降了 20%，涨的全在子代理**。子代理的钱约四成花在验收上；验收约**三次就打回一次**，打回多是写的人没拿真实数据和旧系统对、没跑测试、没读旧代码照着猜（验收员看错只有 2 次）。根子是写错了返工，不是验得太多。教训：会话路数和子代理是总开关，省单价不等于省总账；下一步压返工。完整数字和口径：[数据报告](docs/data-report.md)。
-
-## 更多
-
-- [思考档位怎么设](docs/effort.md)（只用 high / xhigh，不开最高档的理由和数据）
-- [改进过程](docs/history.md)（一步步怎么改的，包括走过的弯路）
-- [数据报告](docs/data-report.md)
-
-[MIT](LICENSE)
+效果因电脑配置、模型、项目而异。[历史数据报告](docs/data-report.md)保留原数字，不代表对新项目的效果承诺。

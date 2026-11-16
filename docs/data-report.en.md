@@ -4,7 +4,7 @@
 
 We measured every Claude Code session on one workstation, from the untuned baseline (Sep 14 – Oct 2) to now (Nov 11 night – Nov 16). Cost per step (one tool call) fell 39%, fresh input per step fell 43%, and whole-file reads fell from about half to about one sixth. But cost per delivery rose, code written per dollar fell, the subagent share of spend more than doubled, and total daily spend went up because many more sessions ran at once. All dollar figures are estimates from a price table, not invoices.
 
-Data source: all Claude Code session logs on one workstation (main sessions + subagents), about 5,800 log files and 650,000 unique replies. The script that computes the numbers is this repo's [`tools/stages.cjs`](../tools/stages.cjs); you can use it to measure your own.
+Data source: all Claude Code session logs on one workstation (main sessions + subagents), about 5,800 log files and 650,000 unique replies. The script that computes the numbers is this repo's [`tools/stages.py`](../tools/stages.py); you can use it to measure your own.
 
 ## 1. Conclusions in one line each
 
@@ -49,7 +49,7 @@ From Nov 11 to Nov 16 the test queue ran 4,212 tests; 716 of them took more than
 
 Why the queue: we once let 8 test runs go at the same time, ran out of memory, and the services in use on this machine stopped responding. So test slots were cut to 4, and one night temporarily to 1. With about twenty sessions all wanting to run tests, a long queue formed.
 
-Fix (live Nov 16; it is this repo's [`tools/test-queue.cjs`](../tools/test-queue.cjs)):
+Fix (live Nov 16; it is this repo's [`tools/test-queue.py`](../tools/test-queue.py)):
 
 1. **Shared pool**: active sessions and running tests share one pool of 20 slots, with at least 2 reserved for tests. When fewer sessions are active, more tests are let through automatically.
 2. **Tiers**: full test suite / whole-directory runs are allowed only at merge and verification review, at most 2 at a time; during development, only tests targeting specific files or cases run, and small tests queued behind a full suite go first.
@@ -82,7 +82,7 @@ Per run, subagents are cheaper. They cost a lot because **we spawned too many**:
 
 ## 5. Is Codex the same?
 
-On the same machine we also use OpenAI Codex (desktop app) to write the same system. For each tool we compare its heaviest day with Nov 15 (Codex kept no local logs for Nov 2 – Nov 10, so we use its heaviest local day, Oct 31). The numbers are computed with the same reader, this repo's `tools/token-usage.cjs --agent codex`. Methodology: in this section one step = one model reply (Codex logs usage per reply; elsewhere a step is one tool call), and each reply is counted once.
+On the same machine we also use OpenAI Codex (desktop app) to write the same system. For each tool we compare its heaviest day with Nov 15 (Codex kept no local logs for Nov 2 – Nov 10, so we use its heaviest local day, Oct 31). The numbers are computed with the same reader, this repo's `tools/token-usage.py --agent codex`. Methodology: in this section one step = one model reply (Codex logs usage per reply; elsewhere a step is one tool call), and each reply is counted once.
 
 ![Codex vs. Claude](images/en/codex-vs-claude.svg)
 
@@ -108,7 +108,7 @@ Honestly:
 - **Each reply counted once**: Claude Code writes one reply as several lines in the session log; we deduplicate globally by reply ID (`message.id`), and tool calls by call ID.
 - **Spend is an estimate**: "equivalent dollars" converted from a price table, not an invoice. Subscription users are counted the same way, so the numbers are comparable. Formula (per million tokens):
   `input × input price + cache write (5 min) × input price × 1.25 + cache write (1 h) × input price × 2 + cache read × 0.2 (a flat $0.20 per million, regardless of model) + output × output price`.
-  Input / output prices depend on the model and are set in `prices` in [`config/stages.example.json`](../config/stages.example.json); change them to match your own plan.
+  Input / output prices depend on the model and are set in `prices` in [`gate.config.example.json`](../gate.config.example.json); change them to match your own plan.
 - **Step** = one tool call (read a file, run a command, edit a file…). **Fresh input** = input + cache writes, excluding cache reads, i.e. what actually enters the context for the first time.
 - **Working hours** = hours with ≥ $1 spend. Idle hours and nights with nobody working don't count, so "deliveries per working hour" isn't diluted by downtime.
 - **Deliveries**: one delivery note is written per finished task, and we count the note files. This is a rough methodology: big and small tasks each count as one, and note-writing habits also changed across rules changes. So "cost per delivery" shows only a trend, not a precise unit price.

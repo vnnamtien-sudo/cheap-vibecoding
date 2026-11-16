@@ -1,0 +1,29 @@
+name: portable-python-gates
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ['3.9', '3.x']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+          check-latest: true
+      - name: Standard library behavior tests
+        run: python -m unittest tests/test_self_check.py tests/test_init.py tests/test_hooks.py tests/test_test_queue.py tests/test_usage.py tests/test_privacy.py tests/test_charts.py tests/test_install_hook.py
+      - name: Publication privacy scan
+        run: python tools/privacy-scan.py
+      - name: Retain privacy receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: privacy-${{ matrix.os }}-${{ matrix.python }}
+          path: .gate/privacy.json
+          include-hidden-files: true

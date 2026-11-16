@@ -1,4 +1,4 @@
-data/
-stages-out.json
-node_modules/
-stages-*.json
+__pycache__/
+*.py[cod]
+.gate/
+.work/

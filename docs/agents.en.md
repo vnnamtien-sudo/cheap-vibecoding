@@ -1,27 +1,46 @@
-# Four versions: how far each one goes
+# Rules and effort by platform
 
 [← Back to README](../README.en.md)
 
-In November 2026 we checked each item against each vendor's current official docs (links below the table). "Tested" = installed on our own machine and seen actually blocking; "per docs" = not installed or no account, written from the official docs, may be off. Issues with corrections are welcome.
+The policy table below applies to all four platforms. The user fills in any unverified model ID in the platform settings; this guide does not guess IDs.
 
-| | Claude Code | OpenAI Codex | Google Antigravity CLI (agy) | DeepSeek |
+| Role | Claude Code | OpenAI Codex | DeepSeek (Claude Code API) | Gemini CLI |
 |---|---|---|---|---|
-| What it is | Anthropic's coding agent | OpenAI's coding agent (CLI and desktop app share the same setup) | Google's current coding agent; since 2026-06-18 Gemini CLI is no longer available to personal accounts (enterprise and paid API keys still work) | **No coding agent of its own**. One of its officially recommended setups: Claude Code pointed at `api.deepseek.com/anthropic` (Codex, OpenCode and others are also listed) |
-| Rules file | `CLAUDE.md` (project root, `~/.claude/`) | `AGENTS.md` (every project level, `~/.codex/`; 32 KiB combined by default) | `AGENTS.md` or `GEMINI.md`, `.agents/rules/*.md`, `~/.gemini/GEMINI.md` (global and always-on rules share about 20k tokens) | Same as Claude Code: `CLAUDE.md` |
-| Our template | [rules/claude/CLAUDE.en.md](../rules/claude/CLAUDE.en.md) | [rules/codex/AGENTS.en.md](../rules/codex/AGENTS.en.md) | [rules/google/GEMINI.en.md](../rules/google/GEMINI.en.md) | [rules/deepseek/CLAUDE.en.md](../rules/deepseek/CLAUDE.en.md) |
-| Blocking hook available? | Yes: PreToolUse (`settings.json`) | Yes: PreToolUse (`~/.codex/hooks.json`), format almost identical to Claude's; the first time you must **trust** it in `/hooks` or settings, otherwise it is silently skipped | Yes: PreToolUse (`.agents/hooks.json`), returns `{"decision":"deny"}`; the old Gemini CLI uses BeforeTool | Same as Claude Code |
-| Read line limit | Blocks Read and cat / Get-Content in the shell | Blocks the shell (Codex reads all files through the shell) | Blocks view_file and run_command | Same as Claude Code |
-| Test queue | Hook blocks unqueued tests | Hook blocks | Hook blocks | Same as Claude Code |
-| Effort level | `effortLevel` + per-model `modelSettings`; `/effort` | `model_reasoning_effort` (low…xhigh, max, ultra, depending on model) | `/effort` (low…max, depending on model) | Claude Code's `/effort`; the official example sets `CLAUDE_CODE_EFFORT_LEVEL=max`, which we don't recommend it (see item 5 in [effort.en.md](effort.en.md)) |
-| Session logs and per-step usage | `~/.claude/projects/**/*.jsonl`, every reply carries usage | `~/.codex/sessions/<year>/<month>/<day>/rollout-*.jsonl`, each step has `token_count` / `token_usage_record` (this format isn't in the official docs; we read it from our local logs) | Has session logs (`brain/<session>/…/transcript.jsonl`), but the docs don't say they contain usage; **the usage scripts can't read them**. The old Gemini CLI's `~/.gemini/tmp/*/chats/*.json` carries tokens and the scripts can read it (per docs) | Same logs as Claude; the scripts split it out by "deepseek" in the model name |
-| Config examples | [examples/claude/](../examples/claude/) | [examples/codex/](../examples/codex/) | [examples/google/](../examples/google/) | [examples/deepseek/](../examples/deepseek/) |
-| How far we tested | Tested (two months) | Tested: both hooks actually blocked in our local Codex 0.169; the usage scripts have read 877 local logs | **Per docs**, not installed locally | Hooks and tools same as Claude, tested; **DeepSeek API per docs**, no account, never run |
+| Main writer | Sonnet 5.5 / high; Opus 5.5 optional | Strongest tier (fill in model) / high | Strongest tier (fill in model) / high | Strongest tier (fill in model) / high |
+| Light review | Haiku 5.5 / high | Lightweight tier (fill in model) / high | Lightweight tier (fill in model) / high | Lightweight tier (fill in model) / high |
+| Final review | Opus 5.5 / xhigh; only for money calculations, major refactors, or releases | Strongest tier (fill in model) / xhigh (confirm support); only for those cases | Strongest tier (fill in model) / xhigh (confirm support); only for those cases | Strongest tier (fill in model) / xhigh (confirm support); only for those cases |
+| Read-only | Haiku 5.5 / high | Lightweight tier (fill in model) / high | Lightweight tier (fill in model) / high | Lightweight tier (fill in model) / high |
 
-The `.en.md` rules files are English translations. Copy the one for your agent into the file name it actually reads (`CLAUDE.md`, `AGENTS.md` or `GEMINI.md`).
+Start light reviews in a fresh session with no implementation context; read-only roles do not edit files. DeepSeek's official API maps xhigh to high, so it is not an xhigh tier. Codex and Gemini CLI effort options depend on the model; confirm support for the selected model. Use high for routine work and reserve final review for the cases listed above. Do not use max or medium as execution tiers. Do not set CLAUDE_CODE_EFFORT_LEVEL to flatten session effort.
 
-Without hooks, or when the hooks aren't wired up, you only have the words in the rules file, and **they don't stop anything** (we measured: with rules alone, whole-file reads never came down). Alternatives:
+## Claude Code
 
-- The test queue works for anyone, no hook needed: `node tools/test-queue.cjs run --label <name> -- <command>`, and state in the rules that "all tests run this way".
-- The usage scripts need no hook: run `node tools/token-usage.cjs --agent <agent>` (share spent re-reading context) and `node tools/stages.cjs --agent <agent>` (whole-file read share) regularly and check whether the whole-file-read and re-read shares are coming down.
+- Put project instructions in CLAUDE.md.
+- Choose an available model with /model. Set routine effort to high with /effort high; Claude Code saves effort by model.
+- Opus 5.5 can be used for high-effort writing. Reserve Opus 5.5 / xhigh for final review of money calculations, major refactors, or releases.
+- Do not set CLAUDE_CODE_EFFORT_LEVEL globally; it can override per-model and per-session choices.
 
-Official docs (checked 2026-11): [Claude Code hooks](https://docs.claude.com/en/docs/claude-code/hooks) · [Codex AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md) · [Codex hooks](https://learn.chatgpt.com/docs/hooks) · [Codex config](https://learn.chatgpt.com/docs/config-file/config-reference) · [Antigravity rules](https://antigravity.google/docs/rules) · [Antigravity hooks](https://antigravity.google/docs/hooks) · [Gemini CLI to Antigravity CLI](https://developers.googleblog.com/an-important-update-transitioning-gemini-cli-to-antigravity-cli/) · [Gemini CLI hooks](https://geminicli.com/docs/hooks/) · [DeepSeek coding agent setup](https://api-docs.deepseek.com/guides/coding_agents) · [DeepSeek with Claude Code](https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code)
+## OpenAI Codex
+
+- Put project instructions in AGENTS.md.
+- Choose a model the user has confirmed is available and set model_reasoning_effort = "high" in Codex settings.
+- Use xhigh for final review only when the selected model explicitly supports it.
+
+## DeepSeek
+
+- DeepSeek can connect to Claude Code through its official Anthropic API. Use the endpoint and model IDs in the official integration guide.
+- The official documentation maps xhigh to high. This integration does not provide a separate xhigh effort tier; the user confirms the final-review capability.
+- Do not copy an environment setting that forces all sessions to max.
+
+## Gemini CLI
+
+- Put project instructions in the root GEMINI.md; the CLI loads context hierarchically.
+- Set model.name in a user or project settings.json when the user has confirmed a model.
+- Configure generation parameters according to that model's documentation. Gemini CLI settings may use model-specific parameters such as thinkingBudget; high and xhigh are not universal configuration keys.
+
+## Official sources
+
+- Claude Code: [model configuration](https://code.claude.com/docs/en/model-config) · [settings files](https://code.claude.com/docs/en/settings)
+- Codex: [configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference) · [AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md)
+- DeepSeek: [Claude Code integration](https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code/) · [thinking mode](https://api-docs.deepseek.com/guides/thinking_mode/)
+- Gemini CLI: [configuration reference](https://github.com/google-gemini/gemini-cli/blob/main/docs/reference/configuration.md) · [generation settings](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/generation-settings.md)

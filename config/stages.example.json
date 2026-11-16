@@ -1,6 +1,7 @@
 {
-  "_readme": "把你改规矩的时间点写成一段段阶段（带时区的 ISO 时刻），最后一段 to 留空表示到现在。prices 是估算价目（每百万 token 的美元：[输入, 输出]），按你的套餐改。",
-  "projects": "~/.claude/projects",
+  "_readme": "把你改规矩的时间点写成一段段阶段（带时区的 ISO 时刻），最后一段 to 留空表示到现在。prices 是估算价目（每百万 token 的美元：[输入, 输出]），按你的套餐改；Codex、Gemini、DeepSeek 自己补一行型号关键词（如 \"gpt\"、\"gemini\"、\"deepseek\"），不补就按 default 估。agent 选 claude / codex / gemini / deepseek，root 是记录目录（不写用该家默认位置）。",
+  "agent": "claude",
+  "root": "~/.claude/projects",
   "activeHourMinUSD": 1,
   "bigContextTokens": 250000,
   "prices": { "opus": [4, 20], "fable": [8, 40], "sonnet": [3, 15], "haiku": [1, 5], "default": [4, 20], "cacheReadPrice": 0.2 },

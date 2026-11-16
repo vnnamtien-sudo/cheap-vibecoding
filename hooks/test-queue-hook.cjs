@@ -254,17 +254,7 @@ function decide(input) {
   return r ? testReason(r, cmd, tool) : null;
 }
 
-function main() {
-  let raw = '';
-  try { raw = fs.readFileSync(0, 'utf8'); } catch (_) { return; }
-  let reason = null;
-  try { reason = decide(JSON.parse(raw)); } catch (_) { reason = null; }
-  if (reason) {
-    process.stdout.write(JSON.stringify({
-      hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: reason },
-    }));
-  }
-}
+function main() { require('./lib/agent-io.cjs').runHook(decide); }
 
 if (require.main === module) {
   try { main(); } catch (_) { /* 放行 */ }

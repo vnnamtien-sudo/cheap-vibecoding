@@ -16,7 +16,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const readline = require('readline');
+const { walk } = require('./lib/sessions.cjs');
 
 function arg(name, dflt) { const i = process.argv.indexOf(name); return i >= 0 ? process.argv[i + 1] : dflt; }
 const home = (p) => String(p).replace(/^~(?=$|[\\/])/, os.homedir());
@@ -29,20 +29,10 @@ function priceOf(prices, model) {
   for (const [k, v] of Object.entries(prices)) if (Array.isArray(v) && k !== 'default' && model.includes(k)) return v;
   return prices.default || DEFAULT_PRICES.default;
 }
+// u 是 lib/sessions.cjs 统一后的一步用量
 function costOf(u, p, cacheRead) {
-  const cw = u.cache_creation || {};
-  const w5 = cw.ephemeral_5m_input_tokens ?? u.cache_creation_input_tokens ?? 0;
-  const w1 = cw.ephemeral_1h_input_tokens ?? 0;
-  const c = ((u.input_tokens || 0) * p[0] + w5 * p[0] * 1.25 + w1 * p[0] * 2 + (u.cache_read_input_tokens || 0) * cacheRead + (u.output_tokens || 0) * p[1]) / 1e6;
-  return { c, fresh: (u.input_tokens || 0) + w5 + w1, ctx: (u.input_tokens || 0) + w5 + w1 + (u.cache_read_input_tokens || 0) };
-}
-
-function listJsonl(dir, acc = []) {
-  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    const p = path.join(dir, e.name);
-    if (e.isDirectory()) listJsonl(p, acc); else if (e.name.endsWith('.jsonl')) acc.push(p);
-  }
-  return acc;
+  const c = (u.freshPlain * p[0] + u.cacheW5 * p[0] * 1.25 + u.cacheW1h * p[0] * 2 + u.cacheRead * cacheRead + u.output * p[1]) / 1e6;
+  return { c, fresh: u.fresh, ctx: u.ctx };
 }
 
 async function main() {
@@ -53,49 +43,35 @@ async function main() {
   const ctxLine = conf.bigContextTokens ?? 250000;
   const ST = conf.stages.map((s) => ({ ...s, a: Date.parse(s.from), b: s.to ? Date.parse(s.to) : Date.now() }));
   const stageOf = (t) => ST.find((s) => t >= s.a && t < s.b) || null;
-  const blank = () => ({ cost: 0, sub: 0, fresh: 0, steps: 0, readLim: 0, readAll: 0, tests: 0, testLong: 0, code: 0, ctx: {}, runs: {}, first: Infinity, last: 0, dlv: 0 });
+  const blank = () => ({ cost: 0, sub: 0, fresh: 0, steps: 0, replies: 0, ctxSum: 0, readLim: 0, readAll: 0, tests: 0, testLong: 0, code: 0, ctx: {}, runs: {}, first: Infinity, last: 0, dlv: 0 });
   const S = Object.fromEntries(ST.map((s) => [s.key, blank()]));
-  const hourCost = {}; const seenMsg = new Set(); const seenTool = new Set(); const testPend = new Map();
-  const files = listJsonl(root);
-  for (const f of files) {
-    const isSub = /subagents/.test(f);
-    const runId = isSub ? f : path.basename(f, '.jsonl');
-    const sid = isSub ? path.basename(path.dirname(path.dirname(f))) : runId;
-    const rl = readline.createInterface({ input: fs.createReadStream(f, 'utf8'), crlfDelay: Infinity });
-    for await (const ln of rl) {
-      if (!ln || ln[0] !== '{') continue;
-      let o; try { o = JSON.parse(ln); } catch (_) { continue; }
-      const t = Date.parse(o.timestamp || ''); if (!t) continue;
-      const st = stageOf(t); if (!st) continue;
-      const s = S[st.key]; const m = o.message;
-      if (o.type === 'assistant' && m && m.usage && m.id && !seenMsg.has(m.id)) {
-        seenMsg.add(m.id);
-        const sub = isSub || o.isSidechain === true;
-        const { c, fresh, ctx } = costOf(m.usage, priceOf(prices, m.model || ''), prices.cacheReadPrice);
-        s.cost += c; s.fresh += fresh; if (sub) s.sub += c;
-        if (t < s.first) s.first = t; if (t > s.last) s.last = t;
-        const h = Math.floor(t / 3600000); hourCost[h] = (hourCost[h] || 0) + c;
-        if (!sub) s.ctx[sid] = Math.max(s.ctx[sid] || 0, ctx);
-        const r = s.runs[runId] = s.runs[runId] || { sub, cost: 0 }; r.cost += c;
-      }
-      if (!m || !Array.isArray(m.content)) continue;
-      for (const b of m.content) {
-        if (b.type === 'tool_use' && b.id && !seenTool.has(b.id)) {
-          seenTool.add(b.id); s.steps += 1; const inp = b.input || {};
-          if (b.name === 'Read') { if (inp.limit) s.readLim += 1; else s.readAll += 1; }
-          if ((b.name === 'Bash' || b.name === 'PowerShell') && TEST.test(String(inp.command || '')) && !inp.run_in_background) testPend.set(b.id, t);
-          if (CODE.test(String(inp.file_path || ''))) {
-            if (b.name === 'Edit') s.code += String(inp.new_string || '').length;
-            else if (b.name === 'Write') s.code += String(inp.content || '').length;
-            else if (b.name === 'MultiEdit') for (const e of inp.edits || []) s.code += String(e.new_string || '').length;
-          }
-        }
-        if (b.type === 'tool_result' && testPend.has(b.tool_use_id)) {
-          const d = t - testPend.get(b.tool_use_id); testPend.delete(b.tool_use_id); s.tests += 1; if (d > 600000) s.testLong += 1;
-        }
-      }
+  const hourCost = {}; const testPend = new Map();
+  const agent = arg('--agent', conf.agent || 'claude');
+  const rootArg = arg('--root') || arg('--projects') || conf.root || conf.projects;
+  const roots = rootArg ? [].concat(rootArg).join(',').split(',').filter(Boolean) : [];
+  const keep = (m) => (agent === 'deepseek' ? /deepseek/i.test(m) : agent === 'claude' ? !/deepseek/i.test(m) : true);
+  const r = await walk(agent, { roots, onStep: (x) => {
+    const st = stageOf(x.t); if (!st || !keep(x.model)) return;
+    const s = S[st.key];
+    const { c, fresh, ctx } = costOf(x.u, priceOf(prices, x.model), prices.cacheReadPrice);
+    s.cost += c; s.fresh += fresh; if (x.sub) s.sub += c; s.replies += 1; s.ctxSum += ctx;
+    if (x.t < s.first) s.first = x.t; if (x.t > s.last) s.last = x.t;
+    const h = Math.floor(x.t / 3600000); hourCost[h] = (hourCost[h] || 0) + c;
+    if (!x.sub) s.ctx[x.sid] = Math.max(s.ctx[x.sid] || 0, ctx);
+    const run = s.runs[x.runId] = s.runs[x.runId] || { sub: x.sub, cost: 0 }; run.cost += c;
+  }, onTool: (x) => {
+    const st = stageOf(x.t); if (!st) return;
+    const s = S[st.key];
+    if (x.done != null) {
+      if (!testPend.has(x.id)) return;
+      const d = x.done - testPend.get(x.id); testPend.delete(x.id); s.tests += 1; if (d > 600000) s.testLong += 1; return;
     }
-  }
+    s.steps += 1;
+    if (x.read === 'part') s.readLim += 1; else if (x.read === 'all') s.readAll += 1;
+    if (x.shell && TEST.test(x.shell) && !x.bg) testPend.set(x.id, x.t);
+    s.code += x.codeChars || 0;
+  } });
+  const files = { length: r.files }; const seenMsg = { size: r.steps };
   const dlvDir = arg('--deliveries');
   if (dlvDir) {
     for (const n of fs.readdirSync(dlvDir)) {
@@ -116,7 +92,7 @@ async function main() {
     const avg = (xs) => (xs.length ? +(xs.reduce((x, r) => x + r.cost, 0) / xs.length).toFixed(2) : null);
     out[st.key] = {
       name: st.name, from: new Date(a).toISOString().slice(0, 16), to: new Date(b).toISOString().slice(0, 16), days: +((b - a) / 864e5).toFixed(1),
-      costUSD: Math.round(s.cost), steps: s.steps, centPerStep: +((s.cost / s.steps) * 100).toFixed(1), freshInKPerStep: +(s.fresh / s.steps / 1000).toFixed(2),
+      costUSD: Math.round(s.cost), steps: s.steps, centPerStep: +((s.cost / s.steps) * 100).toFixed(1), freshInKPerStep: +(s.fresh / s.steps / 1000).toFixed(2), ctxKPerReply: Math.round(s.ctxSum / Math.max(1, s.replies) / 1000),
       wholeFileReadPct: Math.round((s.readAll / Math.max(1, s.readAll + s.readLim)) * 100), subagentCostPct: Math.round((s.sub / s.cost) * 100),
       sessions: ctx.length, bigContextPct: Math.round((ctx.filter((x) => x > ctxLine).length / Math.max(1, ctx.length)) * 100),
       foregroundTests: s.tests, testsOver10minPct: +((s.testLong / Math.max(1, s.tests)) * 100).toFixed(1), codeCharsPerUSD: Math.round(s.code / s.cost),
@@ -126,7 +102,7 @@ async function main() {
     };
   }
   const outFile = arg('--out', 'stages-out.json');
-  fs.writeFileSync(outFile, JSON.stringify({ files: files.length, uniqueReplies: seenMsg.size, stages: out }, null, 1));
+  fs.writeFileSync(outFile, JSON.stringify({ agent, files: files.length, uniqueReplies: seenMsg.size, stages: out }, null, 1));
   for (const [k, r] of Object.entries(out)) {
     console.log(`${k} ${r.name} ${r.from.slice(0, 10)}~${r.to.slice(0, 10)} $${r.costUSD} 每步${r.centPerStep}¢ 新读${r.freshInKPerStep}k 整份读${r.wholeFileReadPct}% 帮手${r.subagentCostPct}% 大上下文${r.bigContextPct}% 字/$${r.codeCharsPerUSD}${r.deliveries != null ? ` 交付${r.deliveries} $/份${r.usdPerDelivery} 份/h${r.deliveriesPerActiveHour}` : ''}`);
   }

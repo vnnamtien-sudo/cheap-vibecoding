@@ -3,7 +3,12 @@
   "hookEnabled": true,
   "slots": 20,
   "poolCountsSessions": true,
-  "transcriptsRoot": "~/.claude/projects",
+  "_sessionDirs": "总池要数的会话目录：哪家没装就是 0，不用删。depth = 记录文件在目录下第几层；datedDays = 只看最近几天的 年/月/日 文件夹。DeepSeek 接在 Claude Code 上，记录在 Claude 那一行里。",
+  "sessionDirs": [
+    { "name": "claude", "path": "~/.claude/projects", "ext": ".jsonl", "depth": 2 },
+    { "name": "codex", "path": "~/.codex/sessions", "ext": ".jsonl", "depth": 4, "datedDays": 3 },
+    { "name": "gemini-cli", "path": "~/.gemini/tmp", "ext": ".json", "depth": 3 }
+  ],
   "activeSessionMinutes": 10,
   "minTestSlots": 2,
   "heavyMax": 2,

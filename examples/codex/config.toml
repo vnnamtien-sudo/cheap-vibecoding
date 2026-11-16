@@ -1,0 +1,5 @@
+# 合并进 ~/.codex/config.toml 的几行（Codex 的思考档位和钩子开关）。为什么只用 high / xhigh 见 README“思考档位怎么设”。
+model_reasoning_effort = "high"      # 日常 high；验收的对话开出来用 /model 或界面调到 xhigh；不开 max、ultra
+
+[features]
+hooks = true                         # 默认就是开的；写出来是防止被别处关掉

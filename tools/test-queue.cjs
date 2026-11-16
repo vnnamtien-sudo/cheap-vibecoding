@@ -23,7 +23,7 @@ const { spawn, spawnSync } = require('child_process');
 const ROOT = process.env.TEST_QUEUE_ROOT || path.join(__dirname, '..');
 const CONFIG_FILE = path.join(ROOT, 'config', 'test-queue.json');
 const DEFAULTS = {
-  hookEnabled: true, slots: 8, poolCountsSessions: true, transcriptsRoot: '~/.claude/projects', activeSessionMinutes: 10,
+  hookEnabled: true, slots: 8, poolCountsSessions: true, sessionDirs: null, transcriptsRoot: '~/.claude/projects', activeSessionMinutes: 10,
   minTestSlots: 1, heavyMax: 1, heavyOnlyLabels: false, heavyLabels: 'merge|verify|nightly', autoWeight: 4,
   timeoutMinutes: 15, minFreeGB: 4, staleMinutes: 20, pollMs: 2000, dataDir: 'data/test-queue',
 };
@@ -76,19 +76,42 @@ function clean(st, cfg, now = Date.now()) {
 function used(st) { return st.holders.reduce((s, h) => s + h.weight, 0); }
 
 // ---- 总池：正在干活的会话（会话记录最近 N 分钟写过）也占位 ----
+// sessionDirs 列出要数的会话目录（四家助手各自的位置），每项 { path, ext, depth, datedDays }：
+//   depth = 记录文件在 path 下第几层（Claude 是 2：项目/会话.jsonl）；datedDays 给了就只看最近几天的 年/月/日 文件夹（Codex）。
+// 没写 sessionDirs 时退回老参数 transcriptsRoot（只数 Claude Code）。
+const DEFAULT_SESSION_DIRS = [
+  { name: 'claude', path: '~/.claude/projects', ext: '.jsonl', depth: 2 },
+  { name: 'codex', path: '~/.codex/sessions', ext: '.jsonl', depth: 4, datedDays: 3 },
+  { name: 'gemini', path: '~/.gemini/tmp', ext: '.json', depth: 3 },
+];
+function sessionDirsOf(cfg) {
+  if (Array.isArray(cfg.sessionDirs)) return cfg.sessionDirs;
+  return [{ name: 'claude', path: cfg.transcriptsRoot || '~/.claude/projects', ext: '.jsonl', depth: 2 }];
+}
+function countFresh(dir, ext, depth, cutoff) {
+  let n = 0; let ents;
+  try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch (_) { return 0; }
+  for (const e of ents) {
+    const p = path.join(dir, e.name);
+    if (depth > 1 && e.isDirectory()) n += countFresh(p, ext, depth - 1, cutoff);
+    else if (depth === 1 && e.isFile() && e.name.endsWith(ext)) { try { if (fs.statSync(p).mtimeMs >= cutoff) n += 1; } catch (_) { /* 刚删 */ } }
+  }
+  return n;
+}
 function activeSessions(cfg, now = Date.now()) {
   if (cfg.poolCountsSessions === false) return 0;
-  const root = expandHome(cfg.transcriptsRoot);
+  const cutoff = now - cfg.activeSessionMinutes * 60000;
   let n = 0;
-  try {
-    for (const d of fs.readdirSync(root, { withFileTypes: true })) {
-      if (!d.isDirectory()) continue;
-      const dir = path.join(root, d.name);
-      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-        if (e.isFile() && e.name.endsWith('.jsonl') && now - fs.statSync(path.join(dir, e.name)).mtimeMs < cfg.activeSessionMinutes * 60000) n += 1;
+  for (const d of sessionDirsOf(cfg)) {
+    const root = expandHome(d.path); const ext = d.ext || '.jsonl'; const depth = Math.max(1, Number(d.depth) || 1);
+    if (d.datedDays && depth >= 4) {
+      for (let i = 0; i < d.datedDays; i += 1) {
+        const t = new Date(now - i * 864e5);
+        const day = path.join(root, `${t.getFullYear()}`, `${t.getMonth() + 1}`.padStart(2, '0'), `${t.getDate()}`.padStart(2, '0'));
+        n += countFresh(day, ext, depth - 3, cutoff);
       }
-    }
-  } catch (_) { return 0; } // 数不出来就只按测试算
+    } else n += countFresh(root, ext, depth, cutoff); // 目录不存在就是没装这家，算 0
+  }
   return n;
 }
 // 测试能用几位：总池减去正在干活的会话（排队等测试的会话不重复算），至少留 minTestSlots；内存不够不再放新的
@@ -283,5 +306,5 @@ async function main(argv) {
 if (require.main === module) {
   main(process.argv.slice(2)).then((code) => { process.exitCode = code; });
 } else {
-  module.exports = { loadConfig, classify, heavyText, scanWeight, testLimit, headOf, canGrant, main };
+  module.exports = { DEFAULT_SESSION_DIRS, sessionDirsOf, activeSessions, loadConfig, classify, heavyText, scanWeight, testLimit, headOf, canGrant, main };
 }

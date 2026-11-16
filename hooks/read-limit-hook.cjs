@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-// Claude Code PreToolUse 钩子：读文件限流（Read-limit hook: stop dumping whole big files into context）。
+// PreToolUse 钩子（Claude Code / Codex / Antigravity / Gemini CLI 通用，收发格式见 lib/agent-io.cjs）：读文件限流（Read-limit hook: stop dumping whole big files into context）。
 //   1. Read 文本文件：超过 wholeFileMax（150）行，且没带 limit 或 limit > maxLines（60）→ 拒绝；
 //      图片、PDF、ipynb、二进制不管，150 行以内不管。
 //   2. Bash / PowerShell 整份倒出大文件（cat / type / Get-Content / gc 在管道最后一段、没带 -TotalCount / -Tail 等、
@@ -181,17 +181,7 @@ function decide(input) {
   return null;
 }
 
-function main() {
-  let raw = '';
-  try { raw = fs.readFileSync(0, 'utf8'); } catch (_) { return; }
-  let reason = null;
-  try { reason = decide(JSON.parse(raw)); } catch (_) { reason = null; }
-  if (reason) {
-    process.stdout.write(JSON.stringify({
-      hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: reason },
-    }));
-  }
-}
+function main() { require('./lib/agent-io.cjs').runHook(decide); }
 
 if (require.main === module) {
   try { main(); } catch (_) { /* 放行 */ }

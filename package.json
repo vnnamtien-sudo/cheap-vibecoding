@@ -1,0 +1,11 @@
+{
+  "name": "cheap-vibecoding",
+  "version": "0.1.0",
+  "description": "Cut Claude Code token spend with hooks, a shared test queue and measurement scripts. No dependencies.",
+  "license": "MIT",
+  "private": true,
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "test": "node --test tests/*.test.cjs"
+  }
+}

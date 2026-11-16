@@ -1,0 +1,18 @@
+{
+  "_readme": "测试排队参数。下面是按 64 GB 内存、24 线程的机器调的；16 GB / 32 GB 的起点见 README“按你的电脑调参”。先量（node tools/test-queue.cjs stats）再调。",
+  "hookEnabled": true,
+  "slots": 20,
+  "poolCountsSessions": true,
+  "transcriptsRoot": "~/.claude/projects",
+  "activeSessionMinutes": 10,
+  "minTestSlots": 2,
+  "heavyMax": 2,
+  "heavyOnlyLabels": true,
+  "heavyLabels": "merge|verify|nightly",
+  "autoWeight": 4,
+  "timeoutMinutes": 15,
+  "minFreeGB": 8,
+  "staleMinutes": 20,
+  "pollMs": 2000,
+  "dataDir": "data/test-queue"
+}

@@ -1,0 +1,12 @@
+{
+  "_readme": "把你改规矩的时间点写成一段段阶段（带时区的 ISO 时刻），最后一段 to 留空表示到现在。prices 是估算价目（每百万 token 的美元：[输入, 输出]），按你的套餐改。",
+  "projects": "~/.claude/projects",
+  "activeHourMinUSD": 1,
+  "bigContextTokens": 250000,
+  "prices": { "opus": [4, 20], "fable": [8, 40], "sonnet": [3, 15], "haiku": [1, 5], "default": [4, 20], "cacheReadPrice": 0.2 },
+  "stages": [
+    { "key": "S0", "name": "baseline / 没调整", "from": "2026-09-01T00:00:00Z", "to": "2026-10-01T00:00:00Z" },
+    { "key": "S1", "name": "effort capped / 限档位", "from": "2026-10-01T00:00:00Z", "to": "2026-11-01T00:00:00Z" },
+    { "key": "S2", "name": "read limits / 源头限读", "from": "2026-11-01T00:00:00Z" }
+  ]
+}

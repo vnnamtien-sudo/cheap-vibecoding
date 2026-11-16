@@ -72,6 +72,10 @@ One more note: the before/after table above doesn't include "share of tests over
 
 Per run, subagents are cheaper. They cost a lot because **we spawned too many**: 916 in a little over 4 days. Replacing subagents with fresh sessions would make the same work cost more per run; the real saving comes from **spawning fewer**: do small lookups yourself by reading line ranges, and spawn only when you have to.
 
+**What they were spawned for** (927 subagents since the night of Nov 11, classified by the first sentence of the task): reviews / acceptance checks 505, 3,286 USD, **68%** of subagent spend; searching and reading code 382, 29%; writing code only 1%. Grouping reviews by the branch they checked, the same branch was often reviewed again by several sessions (one line was reviewed 72 times by 10 sessions); counting from the second review on, the repeats cost about 2,100 USD. That is an upper bound: new commits on the same branch are counted too.
+
+**So why did each delivery get more expensive**: of 16.6 → 19.7 USD per delivery, the main-session part went 13.8 → 11.0 (−20%) and the subagent part 2.8 → 8.7 (×3). The whole increase is subagents, mostly duplicate reviews. Our fix is a hook: a review subagent must name the commit it checks, and the same commit reviewed within 24 hours is blocked. We will add the result after re-measuring.
+
 ## 5. Is Codex the same?
 
 On the same machine we also use OpenAI Codex (desktop app) to write the same system. For each tool we compare its heaviest day with Nov 15 (Codex kept no local logs for Nov 2 – Nov 10, so we use its heaviest local day, Oct 31). The numbers are computed with the same reader, this repo's `tools/token-usage.cjs --agent codex`. Methodology: one step = one model reply, and each reply is counted once.

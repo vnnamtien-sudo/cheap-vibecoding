@@ -18,7 +18,6 @@ Measured on our own workstation over two months and 650,000 replies:
 |---|---|
 | `hooks/read-limit-hook.cjs` | No dumping whole big files; at most 60 lines at a time, and it hands back the fixed command |
 | `hooks/test-queue-hook.cjs` + `tools/test-queue.cjs` | Tests must queue: one pool for sessions and tests, full-suite tiering, 15-minute circuit breaker, free-memory floor |
-| `hooks/review-dedupe-hook.cjs` | Blocks duplicate reviews (Claude Code / DeepSeek, on by default in the Claude example): a review subagent must name the commit it checks, and each commit is reviewed once per 24 hours |
 | `tools/token-usage.cjs`, `tools/stages.cjs` | Where the money goes; before/after comparison split by the dates you changed your rules |
 
 Plus a token-saving rules template per agent: `rules/claude/`, `rules/codex/`, `rules/google/`, `rules/deepseek/`.
@@ -63,7 +62,7 @@ Read-only, local transcripts only, no network. Note: the tools and hooks print t
 
 ## Honestly: the total bill did not go down
 
-Unit cost fell 40%, but total cost per delivery did not (16.6 → 19.7 USD). Split it and **main sessions got 20% cheaper per delivery; the whole increase is subagents**: 68% of subagent spend went to reviews, and the same branch was often reviewed again by several sessions. Lesson: the number of sessions and subagents is the master switch; a cheaper unit cost is not a smaller bill. We have added a hook that blocks duplicate reviews (`hooks/review-dedupe-hook.cjs`) and will update this after re-measuring. Full numbers and method: [data report](docs/data-report.en.md).
+Unit cost fell 40%, but total cost per delivery did not (16.6 → 19.7 USD). Split it and **main sessions got 20% cheaper per delivery; the whole increase is subagents**. About 40% of subagent spend went to reviews, and **about one review in three sent the work back**, mostly because the author had not compared against the old system on real data, had not run the tests, or guessed instead of reading the old code (reviewers got it wrong only twice). The root cause is rework after mistakes, not too many reviews. Lesson: the number of sessions and subagents is the master switch; a cheaper unit cost is not a smaller bill. Next we go after the rework. Full numbers and method: [data report](docs/data-report.en.md).
 
 ## More
 

@@ -36,4 +36,3 @@
 
 12. A verification review blocks only three kinds of issue: wrong money or ledger figures, messages sent wrongly, and blocking business that is in use. Each needs a real, reachable counterexample; everything else is noted for the next version.
 13. The second review round checks only the items from the first round; don't re-review from scratch.
-14. A review subagent must name the commit it checks ("commit <sha>"; without a commit, "review target: <name>"). The same commit is reviewed once per 24 hours; ask for the earlier result instead of reviewing again (the Claude hook blocks repeats).

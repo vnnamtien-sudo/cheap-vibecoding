@@ -1,6 +1,0 @@
-{
-  "_readme": "拦重复验收的钩子（hooks/review-dedupe-hook.cjs）。windowHours 内同一个提交 / 验收对象只放一个验收子代理；关掉改 enabled:false。",
-  "enabled": true,
-  "windowHours": 24,
-  "dataDir": "data/review-dedupe"
-}

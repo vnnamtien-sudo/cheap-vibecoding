@@ -27,16 +27,6 @@
             "timeout": 15
           }
         ]
-      },
-      {
-        "matcher": "Agent|Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node /path/to/cheap-vibecoding/hooks/review-dedupe-hook.cjs",
-            "timeout": 10
-          }
-        ]
       }
     ]
   }

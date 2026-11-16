@@ -2,7 +2,7 @@
 
 **简体中文** | [English](README.en.md)
 
-让 AI 编程助手**同时开很多路也不乱烧钱**的几件小工具。Claude Code、OpenAI Codex、谷歌 Antigravity、DeepSeek 都能用；Node.js 单文件，零依赖。
+让 AI 编程助手**同时开很多路也不乱烧钱**的几件小工具。Claude Code、OpenAI Codex、谷歌 Antigravity、DeepSeek 都能用；纯 Node.js 脚本，零依赖。
 
 ![每一步花费](docs/images/cost-per-step.svg)
 
@@ -12,12 +12,13 @@
 - **整份读大文件 51% → 16%**：靠钩子拦下来的，光在规矩里写“少读”降不下来
 - **测试“卡住”的 67% 其实在排队**：所以会话和测试共用一个总池统一放行
 
-## 里面就三样
+## 里面有什么
 
 | 文件 | 做什么 |
 |---|---|
 | `hooks/read-limit-hook.cjs` | 大文件不准整份读，一次最多 60 行，拦下时给出改好的命令 |
 | `hooks/test-queue-hook.cjs` + `tools/test-queue.cjs` | 测试必须排队：会话和测试共用总池、整套测试分级、15 分钟熔断、内存不够不放 |
+| `hooks/review-dedupe-hook.cjs` | 拦重复验收（Claude Code / DeepSeek，Claude 示例里默认开）：派验收子代理要写明验哪个提交，同一提交 24 小时内只验一次 |
 | `tools/token-usage.cjs`、`tools/stages.cjs` | 查钱花在哪；按你改规矩的日期切段，比改前改后 |
 
 另有四家各一份省用量规矩模板：`rules/claude/`、`rules/codex/`、`rules/google/`、`rules/deepseek/`。
@@ -30,6 +31,7 @@
    - Codex：`examples/codex/hooks.json` 放到 `~/.codex/hooks.json`，再在 `/hooks` 里点信任（**不信任会被静默跳过**）
    - 谷歌 Antigravity：`examples/google/hooks.json` 放到项目的 `.agents/hooks.json`
    - DeepSeek：钩子同 Claude Code，用 `examples/deepseek/` 的启动脚本
+   配置里的 `/path/to/cheap-vibecoding` 换成你克隆的位置，`_readme` 那一行是说明、不用抄。
 3. 把 `rules/<家>/` 的规矩贴进它认的规矩文件最上面。
 4. 按下一节改 `config/test-queue.json`。
 5. 试一下：叫助手整份读一个 300 行的文件、直接跑一次测试，两次都应被拦下。
@@ -52,7 +54,8 @@
 
 ```bash
 node tools/token-usage.cjs --days 7                 # 近 7 天花了多少、多少是重读前文
-node tools/token-usage.cjs --agent codex --days 7   # 换一家：codex / gemini / deepseek / all
+node tools/token-usage.cjs --agent codex --days 7   # 换一家：codex / gemini（只认旧 Gemini CLI）/ deepseek / all
+node tools/stages.cjs --stages config/stages.example.json --agent claude   # 按你改规矩的日期切段比（先改配置里的日期）
 node tools/test-queue.cjs status                    # 测试排队情况
 ```
 
@@ -60,7 +63,7 @@ node tools/test-queue.cjs status                    # 测试排队情况
 
 ## 照实说：总账没省下来
 
-单价降了四成，但每份活的总花费没降（16.6 → 19.7 美元）。拆开看：**主会话每份活降了 20%，涨的全在子代理**——子代理的钱 68% 花在验收上，同一个分支常被好几个会话各验一遍。教训：会话路数和子代理才是总开关，省单价不等于省总账。我们正在加一个拦重复验收的钩子，复量后更新这里。完整数字和口径：[数据报告](docs/data-report.md)。
+单价降了四成，但每份活的总花费没降（16.6 → 19.7 美元）。拆开看：**主会话每份活降了 20%，涨的全在子代理**——子代理的钱 68% 花在验收上，同一个分支常被好几个会话各验一遍。教训：会话路数和子代理才是总开关，省单价不等于省总账。我们已加上拦重复验收的钩子（`hooks/review-dedupe-hook.cjs`），复量后更新这里。完整数字和口径：[数据报告](docs/data-report.md)。
 
 ## 更多
 

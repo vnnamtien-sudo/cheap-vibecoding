@@ -20,6 +20,6 @@
 - **内存不够会把正在用的服务挤卡**。我们吃过这个亏：曾让 8 份测试同时跑，同一台机器上正在给人用的服务直接不回话。如果你的开发机上还跑着别的东西（数据库、本地服务、浏览器一堆标签），`minFreeGB` 宁可设高一点。
 - **CPU 也有上限**：所有测试的并行进程数加起来，最好不超过 CPU 线程数。`pytest -n auto` 在排队器里按 `autoWeight`（默认 4 位）算，线程少的机器把它调小，或者干脆写死 `-n 2`。
 - **熔断分钟数按你最慢的“该跑的”测试定**。开发期点到的测试应该在 30 秒内跑完；整套该在合并、验收时跑。15 分钟都跑不完的，多半该拆了。
-- **总池要数到你所有的助手**：`config/test-queue.json` 的 `sessionDirs` 列了 Claude、Codex、Gemini CLI 三处会话记录目录，没装的那家自动算 0；记录放在别处的改 `path`。DeepSeek 接在 Claude Code 上，算在 Claude 那一行。
+- **总池要数到你所有的助手**（Antigravity 的会话记录位置官方没写，暂时数不到它）：`config/test-queue.json` 的 `sessionDirs` 列了 Claude、Codex、Gemini CLI 三处会话记录目录，没装的那家自动算 0；记录放在别处的改 `path`。DeepSeek 接在 Claude Code 上，算在 Claude 那一行。
 - **路径和 shell 改成你自己的**：`examples/` 里的路径换成你的；Windows 上命令要在 Git Bash 里跑，PowerShell 也能用但引号规则不一样。
 - **会话路数受套餐额度限制**。总池再大，额度跟不上也白搭；路数是花费的总开关，见数据报告。

@@ -2,7 +2,7 @@
 
 [简体中文](README.md) | **English**
 
-A few small tools for running **many AI coding-agent sessions at once without burning money**. Works with Claude Code, OpenAI Codex, Google Antigravity and DeepSeek. Single-file Node.js, zero dependencies.
+A few small tools for running **many AI coding-agent sessions at once without burning money**. Works with Claude Code, OpenAI Codex, Google Antigravity and DeepSeek. Plain Node.js scripts, zero dependencies.
 
 ![Cost per step](docs/images/en/cost-per-step.svg)
 
@@ -12,12 +12,13 @@ Measured on our own workstation over two months and 650,000 replies:
 - **Whole-file reads 51% → 16%**: done by a hook; writing "read less" in the rules never moved it
 - **67% of "stuck" tests were just waiting in line**: so sessions and tests now share one pool
 
-## Just three things
+## What's inside
 
 | File | What it does |
 |---|---|
 | `hooks/read-limit-hook.cjs` | No dumping whole big files; at most 60 lines at a time, and it hands back the fixed command |
 | `hooks/test-queue-hook.cjs` + `tools/test-queue.cjs` | Tests must queue: one pool for sessions and tests, full-suite tiering, 15-minute circuit breaker, free-memory floor |
+| `hooks/review-dedupe-hook.cjs` | Blocks duplicate reviews (Claude Code / DeepSeek, on by default in the Claude example): a review subagent must name the commit it checks, and each commit is reviewed once per 24 hours |
 | `tools/token-usage.cjs`, `tools/stages.cjs` | Where the money goes; before/after comparison split by the dates you changed your rules |
 
 Plus a token-saving rules template per agent: `rules/claude/`, `rules/codex/`, `rules/google/`, `rules/deepseek/`.
@@ -30,6 +31,7 @@ Plus a token-saving rules template per agent: `rules/claude/`, `rules/codex/`, `
    - Codex: put `examples/codex/hooks.json` at `~/.codex/hooks.json`, then trust it in `/hooks` (**untrusted hooks are skipped silently**)
    - Google Antigravity: put `examples/google/hooks.json` at `.agents/hooks.json` in your project
    - DeepSeek: same hooks as Claude Code; start with the script in `examples/deepseek/`
+   Replace `/path/to/cheap-vibecoding` with where you cloned it; the `_readme` key is a note, leave it out.
 3. Paste `rules/<agent>/` at the top of the rules file your agent reads.
 4. Adjust `config/test-queue.json` using the next section.
 5. Try it: ask the agent to read a 300-line file whole, and to run a test directly. Both should be blocked.
@@ -52,15 +54,16 @@ After two or three days run `node tools/test-queue.cjs stats --days 3` and adjus
 
 ```bash
 node tools/token-usage.cjs --days 7                 # last 7 days: spend, share spent re-reading context
-node tools/token-usage.cjs --agent codex --days 7   # another agent: codex / gemini / deepseek / all
+node tools/token-usage.cjs --agent codex --days 7   # another agent: codex / gemini (old Gemini CLI only) / deepseek / all
+node tools/stages.cjs --stages config/stages.example.json --agent claude   # compare periods split by your rule-change dates (edit the dates first)
 node tools/test-queue.cjs status                    # test queue
 ```
 
-Read-only, local transcripts only, no network.
+Read-only, local transcripts only, no network. Note: the tools and hooks print their messages in Chinese.
 
 ## Honestly: the total bill did not go down
 
-Unit cost fell 40%, but total cost per delivery did not (16.6 → 19.7 USD). Split it and **main sessions got 20% cheaper per delivery; the whole increase is subagents**: 68% of subagent spend went to reviews, and the same branch was often reviewed again by several sessions. Lesson: the number of sessions and subagents is the master switch; a cheaper unit cost is not a smaller bill. We are adding a hook that blocks duplicate reviews and will update this after re-measuring. Full numbers and method: [data report](docs/data-report.en.md).
+Unit cost fell 40%, but total cost per delivery did not (16.6 → 19.7 USD). Split it and **main sessions got 20% cheaper per delivery; the whole increase is subagents**: 68% of subagent spend went to reviews, and the same branch was often reviewed again by several sessions. Lesson: the number of sessions and subagents is the master switch; a cheaper unit cost is not a smaller bill. We have added a hook that blocks duplicate reviews (`hooks/review-dedupe-hook.cjs`) and will update this after re-measuring. Full numbers and method: [data report](docs/data-report.en.md).
 
 ## More
 

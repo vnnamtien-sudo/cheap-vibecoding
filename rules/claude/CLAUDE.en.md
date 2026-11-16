@@ -23,7 +23,7 @@
 
 ## Effort level
 
-8. Use only two effort levels: high for writing code, writing docs and read-only checks; xhigh for verification reviews, money and ledger calculations, and large refactors. Don't use max (much more expensive, little extra output); don't use medium (rework costs more). When spawning a subagent, state its effort level: xhigh for verification reviews, high for everything else. For how to set it, see "How to set the effort level" in the README.
+8. Use only two effort levels: high for writing code, writing docs and read-only checks; xhigh for verification reviews, money and ledger calculations, and large refactors. Don't use max (much more expensive, little extra output); don't use medium (rework costs more). When spawning a subagent, state its effort level: xhigh for verification reviews, high for everything else. For how to set it, see docs/effort.en.md in this repo.
 
 ## Tests
 
@@ -35,3 +35,4 @@
 
 12. A verification review blocks only three kinds of issue: wrong money or ledger figures, messages sent wrongly, and blocking business that is in use. Each needs a real, reachable counterexample; everything else is noted for the next version.
 13. The second review round checks only the items from the first round; don't re-review from scratch.
+14. A review subagent must name the commit it checks ("commit <sha>"; without a commit, "review target: <name>"). The same commit is reviewed once per 24 hours; ask for the earlier result instead of reviewing again (the Claude hook blocks repeats).

@@ -1,4 +1,4 @@
-# 合并进 ~/.codex/config.toml 的几行（Codex 的思考档位和钩子开关）。为什么只用 high / xhigh 见 README“思考档位怎么设”。
+# 合并进 ~/.codex/config.toml 的几行（Codex 的思考档位和钩子开关）。为什么只用 high / xhigh 见 docs/effort.md。
 model_reasoning_effort = "high"      # 日常 high；验收的对话开出来用 /model 或界面调到 xhigh；不开 max、ultra
 
 [features]

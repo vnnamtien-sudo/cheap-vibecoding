@@ -10,7 +10,7 @@ Model: [Opus]; effort level: [high / xhigh].
 
 1. Read less: search for line numbers before reading a file, ≤ 60 lines each time; send large chunks of old code to a one-off subagent that returns only ≤ 100 words; write data lookups and test details to a temp file and print a conclusion of ≤ 15 lines on screen.
 2. Goal of this leg: finish one small feature with all four parts (read, write, API or page, tests) that can be verified on its own. If context reaches about [250k] and nothing verifiable has been delivered yet, write the exact numbers, changed file paths and where to pick up next into the handoff note, and end the conversation.
-3. Always run tests through the queue (node tools/test-queue.cjs run --label <label> -- …); during development, run only targeted tests.
+3. Always run tests through the queue (node <cheap-vibecoding dir>/tools/test-queue.cjs run --label <label> -- …); during development, run only targeted tests.
 4. Read only these three things, then start: handoff note [path], plan [path], files to change [list]. Don't read old conversations; don't page through old code line by line.
 
 After reading the handoff note, state the goal of this leg in one sentence and start right away.
@@ -34,6 +34,6 @@ After reading the handoff note, state the goal of this leg in one sentence and s
 Don't report how many lines were written. Report only:
 1. Ticks on the feature checklist: an item counts only when all four parts (read, write, page or API, tests) are done.
 2. Cumulative number of feature items merged to main; how many are backlogged waiting for verification review and waiting to merge.
-3. Average test time and queue status (node tools/test-queue.cjs stats); were any runs over 10 minutes?
+3. Average test time and queue status (node <cheap-vibecoding dir>/tools/test-queue.cjs stats); were any runs over 10 minutes?
 4. Today's usage (node tools/token-usage.cjs --days 1) and whether cost per step changed.
 ```

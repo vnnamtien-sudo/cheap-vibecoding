@@ -49,7 +49,7 @@ From Nov 11 to Nov 16 the test queue ran 4,212 tests; 716 of them took more than
 
 Why the queue: we once let 8 test runs go at the same time, ran out of memory, and the services in use on this machine stopped responding. So test slots were cut to 4, and one night temporarily to 1. With about twenty sessions all wanting to run tests, a long queue formed.
 
-Fix (rules v70, live Nov 16; it is this repo's [`tools/test-queue.cjs`](../tools/test-queue.cjs)):
+Fix (live Nov 16; it is this repo's [`tools/test-queue.cjs`](../tools/test-queue.cjs)):
 
 1. **Shared pool**: active sessions and running tests share one pool of 20 slots, with at least 2 reserved for tests. When fewer sessions are active, more tests are let through automatically.
 2. **Tiers**: full test suite / whole-directory runs are allowed only at merge and verification review, at most 2 at a time; during development, only tests targeting specific files or cases run, and small tests queued behind a full suite go first.
@@ -72,13 +72,13 @@ One more note: the before/after table above doesn't include "share of tests over
 
 Per run, subagents are cheaper. They cost a lot because **we spawned too many**: 916 in a little over 4 days. Replacing subagents with fresh sessions would make the same work cost more per run; the real saving comes from **spawning fewer**: do small lookups yourself by reading line ranges, and spawn only when you have to.
 
-**What they were spawned for** (927 subagents since the night of Nov 11, classified by the first sentence of the task): reviews / acceptance checks 505, 3,286 USD, **68%** of subagent spend; searching and reading code 382, 29%; writing code only 1%. Grouping reviews by the branch they checked, the same branch was often reviewed again by several sessions (one line was reviewed 72 times by 10 sessions); counting from the second review on, the repeats cost about 2,100 USD. That is an upper bound: new commits on the same branch are counted too.
+**What they were spawned for** (recounted on the evening of Nov 16: 927 subagents and 4,843 USD since the night of Nov 11, half a day more than the table above; classified by the first sentence of the task): reviews / acceptance checks 505, 3,286 USD, **68%** of subagent spend; searching and reading code 382, 29%; writing code only 1%. Grouping reviews by the branch they checked, the same branch was often reviewed again by several sessions (one line was reviewed 72 times by 10 sessions); counting from the second review on, the repeats cost about 2,100 USD. That is an upper bound: new commits on the same branch are counted too.
 
-**So why did each delivery get more expensive**: of 16.6 → 19.7 USD per delivery, the main-session part went 13.8 → 11.0 (−20%) and the subagent part 2.8 → 8.7 (×3). The whole increase is subagents, mostly duplicate reviews. Our fix is a hook: a review subagent must name the commit it checks, and the same commit reviewed within 24 hours is blocked. We will add the result after re-measuring.
+**So why did each delivery get more expensive**: of 16.6 → 19.7 USD per delivery, the main-session part went 13.8 → 11.0 (−20%) and the subagent part 2.8 → 8.7 (×3). The whole increase is subagents, mostly duplicate reviews. Our fix is the hook `hooks/review-dedupe-hook.cjs`: a review subagent must name the commit it checks, and the same commit reviewed within 24 hours is blocked. We will add the result after re-measuring.
 
 ## 5. Is Codex the same?
 
-On the same machine we also use OpenAI Codex (desktop app) to write the same system. For each tool we compare its heaviest day with Nov 15 (Codex kept no local logs for Nov 2 – Nov 10, so we use its heaviest local day, Oct 31). The numbers are computed with the same reader, this repo's `tools/token-usage.cjs --agent codex`. Methodology: one step = one model reply, and each reply is counted once.
+On the same machine we also use OpenAI Codex (desktop app) to write the same system. For each tool we compare its heaviest day with Nov 15 (Codex kept no local logs for Nov 2 – Nov 10, so we use its heaviest local day, Oct 31). The numbers are computed with the same reader, this repo's `tools/token-usage.cjs --agent codex`. Methodology: in this section one step = one model reply (Codex logs usage per reply; elsewhere a step is one tool call), and each reply is counted once.
 
 ![Codex vs. Claude](images/en/codex-vs-claude.svg)
 
@@ -95,7 +95,7 @@ Honestly:
 
 - **Same**: on both sides 98–99% of tokens go to re-reading prior context (cache reads); fresh input per step is now around 2.2k on both.
 - **Different**: Claude's prior context per step was cut from 380k to 210k (handing off to a fresh conversation at about 250k worked); Codex's went up from 150k to 210k, as conversations got longer.
-- **Whole-file reads**: Claude got from 57% down to 15% because of the blocking hook; Codex already tends to read only a range, so even without a hook it is only 10–20%.
+- **Whole-file reads**: Claude got from 57% down to 15% because of the blocking hook; Codex already tends to read only a range, so even without a hook it is only 10–22%.
 - **At the time, the hooks only covered Claude**: when we took these measurements, the read line-limit and test-queue hooks were installed only in Claude Code; Codex had only the written rules in AGENTS.md, and Codex's default thinking effort level was also set to the highest. On Nov 16 we connected the same two hooks to our local Codex (tested: they block), and we'll add the effect after re-measuring.
 - **Methodology gap**: Codex's local logs come to about 70% of what its official usage page reports, so this compares trends, not absolute amounts.
 

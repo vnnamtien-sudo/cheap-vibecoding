@@ -8,4 +8,8 @@ $env:ANTHROPIC_DEFAULT_OPUS_MODEL = 'deepseek-flash[1m]'
 $env:ANTHROPIC_DEFAULT_SONNET_MODEL = 'deepseek-flash[1m]'
 $env:ANTHROPIC_DEFAULT_HAIKU_MODEL = 'deepseek-flash'
 $env:CLAUDE_CODE_SUBAGENT_MODEL = 'deepseek-flash'
+# 官方示例还设了 CLAUDE_CODE_EFFORT_LEVEL=max 和 CLAUDE_CODE_AUTO_COMPACT_WINDOW。我们不设前一个（会把所有会话、子代理压成同一档），进去以后用 /effort high；
+# 要照官方全设，把下面两行的 # 去掉。
+# $env:CLAUDE_CODE_EFFORT_LEVEL = 'max'
+# $env:CLAUDE_CODE_AUTO_COMPACT_WINDOW = '786432'
 claude @args

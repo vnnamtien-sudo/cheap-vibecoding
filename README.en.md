@@ -56,4 +56,4 @@ init.py and self-check.py are in this repository; --root points to the target pr
 
 The Claude Code, Codex, and Gemini CLI examples contain placeholder model IDs; replace them with confirmed IDs before use. To enable Claude's native hooks, copy the hooks and tools/lib directories into the project root. On Windows, if python3 is unavailable, change the hook command to python or py. Using only a rule file requires no runtime. Self-checks, targeted tests, and the Git hook are optional. See gate.config.example.json and [gate configuration](docs/gate-config.en.md) for fields and local data locations. Read [advanced configuration](docs/advanced.en.md) only when running multiple sessions or coordinating multiple people.
 
-Results vary by computer, model and project. The [historical report](docs/data-report.en.md) preserves its original numbers; they are not a promise for another project.
+Results vary by computer, model and project. The [historical report](docs/data-report.en.md) preserves its original numbers; they are not a promise for another project. **What we got wrong** and what we changed: see the [retrospective](docs/lessons.en.md).

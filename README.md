@@ -56,4 +56,4 @@ init.py 和 self-check.py 在本仓库中；命令通过 --root 指向目标项�
 
 Claude Code、Codex 和 Gemini CLI 配置示例中的型号 ID 是占位值，使用前要替换成你已确认的型号。启用 Claude 原生钩子时，需把 hooks 和 tools/lib 目录复制到项目根目录；Windows 若无 python3 命令，可在设置中改为 python 或 py。只用规则文件不需要运行时。自检、定向测试和 Git 提交钩子是可选的；详细字段和本地数据位置见 gate.config.example.json 与[配置说明](docs/gate-config.md)。多人或多会话并行时再看[高级配置](docs/advanced.md)。
 
-效果因电脑配置、模型、项目而异。[历史数据报告](docs/data-report.md)保留原数字，不代表对新项目的效果承诺。
+效果因电脑配置、模型、项目而异。[历史数据报告](docs/data-report.md)保留原数字，不代表对新项目的效果承诺。**我们做错了什么**、改了什么，见[复盘](docs/lessons.md)。

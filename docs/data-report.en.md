@@ -2,6 +2,8 @@
 
 [简体中文](data-report.md) | **English**
 
+> Nov 16 retrospective: this report shows savings per step, but each delivery got more expensive. Where the money really went and what we changed: see [what we got wrong](lessons.en.md).
+
 We measured every Claude Code session on one workstation, from the untuned baseline (Sep 14 – Oct 2) to now (Nov 11 night – Nov 16). Cost per step (one tool call) fell 39%, fresh input per step fell 43%, and whole-file reads fell from about half to about one sixth. But cost per delivery rose, code written per dollar fell, the subagent share of spend more than doubled, and total daily spend went up because many more sessions ran at once. All dollar figures are estimates from a price table, not invoices.
 
 Data source: all Claude Code session logs on one workstation (main sessions + subagents), about 5,800 log files and 650,000 unique replies. The script that computes the numbers is this repo's [`tools/stages.py`](../tools/stages.py); you can use it to measure your own.

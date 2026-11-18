@@ -45,6 +45,6 @@ Run `python3 tools/install-hook.py --root <project>`. It creates a local pre-com
 
 Claude may additionally install read/test hooks using examples/claude/settings.json: commands use python3; Windows users replace it with python or py. Codex, DeepSeek and Gemini use rules plus optional pre-commit; their hook protocols are not assumed identical.
 
-## Privacy and historical reports
+## Privacy and the data report
 
-`python3 tools/privacy-scan.py` checks Git-managed and nonignored candidate text. Its .gate/privacy.json receipt records locations and rules without exposing matching values. Binary files, links and unknown encodings require review. It detects common credential/private-text patterns; add project-specific names through privacy.patterns. Ignored personal logs are unpublished and outside scan scope. Historical report numbers are unchanged, not predictions for another project. Results vary by computer, model and project.
+`python3 tools/privacy-scan.py` checks Git-managed and nonignored candidate text. Its .gate/privacy.json receipt records locations and rules without exposing matching values. Binary files, links and unknown encodings require review. It detects common credential/private-text patterns; add project-specific names through privacy.patterns. Ignored personal logs are unpublished and outside scan scope. Data report numbers come from one of our machines and are not predictions for another project. Results vary by computer, model and project.

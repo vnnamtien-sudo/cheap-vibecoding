@@ -1,250 +1,58 @@
 {
   "zh": {
-    "stair": {
-      "title": "每一步（一次工具调用）平均花多少美分",
-      "sub": "从最早没调整到现在 −39%",
-      "foot": "每段是一次改规矩之后的那几天；花费按估算价目算（见数据报告“口径”），不是账单。",
-      "bars": [
-        [
-          "最早没调整",
-          "9/14–10/2"
-        ],
-        [
-          "全开最高档",
-          "10/3–10/12"
-        ],
-        [
-          "降档+程序先查",
-          "10/13–11/4"
-        ],
-        [
-          "一事一对话",
-          "11/5–11/10"
-        ],
-        [
-          "只用高两档",
-          "11/10–11/11"
-        ],
-        [
-          "源头限读",
-          "11/11–11/16"
-        ]
-      ]
+    "fp": {
+      "title": "每一步都要把整段对话重读一遍",
+      "sub": "一台工作站全部 Claude Code 会话记录里，token 花在哪",
+      "reread": "重读前文 ≈ 98–99%",
+      "fresh": "新读入 + 写出 ≈ 1–2%",
+      "formula": "花费 ≈ 每步上下文 × 步数 × 单价",
+      "levers": [
+        ["① 每步上下文", "规矩写短、少改", "先搜再读，每次 ≤60 行", "到约 25 万就压缩"],
+        ["② 步数", "一件事一个对话", "交验收前先跑自检", "少开子代理和新会话"],
+        ["③ 单价", "日常用 high", "xhigh 只给最终验收", "只读用轻量型号"]
+      ],
+      "foot": "数据：一台工作站 2026-09-14 至 11-18 的会话记录，统计脚本 tools/stages.py"
     },
     "ba": {
-      "title": "最早没调整（9/14–10/2） vs 现在（11/11 夜–11/16）",
-      "sub": "好的坏的都放；停工的小时不算进“干活小时”。",
-      "legend": [
-        "最早没调整",
-        "现在"
-      ],
-      "good": "变好的",
-      "bad": "变差的",
-      "goodRows": [
+      "title": "未调整（9/14–10/2） vs 现在（11/17–11/18）",
+      "sub": "同一台工作站、同一个统计脚本，越短越好",
+      "legend": ["未调整", "现在"],
+      "rows": [
         "每一步花费（美分）",
         "每一步新读入（千 token）",
         "整份读文件的占比（%）",
-        "每个干活小时交付（份）"
+        "上下文超 25 万的会话（%）"
       ],
-      "badRows": [
-        "每份交付花费（美元）",
-        "每美元写进程序（字）",
-        "子代理花费占比（%）",
-        "上下文超 25 万的会话占比（%）"
-      ],
-      "chg": [
-        "−39%",
-        "−43%",
-        "−35 点",
-        "+74%",
-        "+19%",
-        "−21%",
-        "+27 点",
-        "+10 点"
-      ],
-      "foot": "每行各用自己的刻度，只比同一行的前后两根。数据：本机全部会话记录，同一条回复只算一次。"
-    },
-    "tw": {
-      "title": "测试超过 10 分钟的 716 次里，67% 是在排队",
-      "sub": "11/11–11/16 一共 4,212 次测试。",
-      "parts": [
-        "排队等位",
-        "真跑得慢",
-        "两者叠加"
-      ],
-      "times": "次",
-      "lines": [
-        "为什么排队：测试位一度从 8 减到 4（8 份同时跑内存不够，把正在用的服务挤卡），某晚还临时减到 1；",
-        "二十来路会话同时要测试，于是排长队。真跑慢的主要是合并、验收时跑整套（中位约 19 分钟，最长 74 分钟）。"
-      ],
-      "fix": "对策（v70）：",
-      "fixes": [
-        "① 会话和测试共用一个总池（20 位）  ② 整套只准合并 / 验收跑、最多 2 份，开发只跑点到的测试",
-        "③ 单次满 15 分钟熔断  ④ 空闲内存不够不放新测试。11/19 复量效果后补进数据报告。"
-      ],
-      "foot": "来源：测试排队器的运行记录（runs.jsonl）。"
-    },
-    "sv": {
-      "title": "一次子代理 vs 一个新会话（11/11 夜–11/16）",
-      "legend": [
-        "子代理",
-        "新会话"
-      ],
-      "rows": [
-        "每次平均花费（美元）",
-        "开张先读进来的量（千 token）",
-        "这几天开了多少次"
-      ],
-      "lines": [
-        "结论：单价子代理便宜，费钱在于派得太多（4 天多 916 次、4,722 美元）。要省靠“少开”：",
-        "小的查找自己按行读，非开不可的才开。每行各用自己的刻度。"
-      ]
-    },
-    "cx": {
-      "title": "Codex 那边也一样吗：用得最多的一天 vs 11/15",
-      "sub": "Claude 最多是 10/8，Codex 最多是 10/31（本机有记录的日子里）。",
-      "legend": [
-        "用得最多的一天",
-        "11/15"
-      ],
-      "rows": [
-        "Claude 每步重读前文（万 token）",
-        "Codex 每步重读前文（万 token）",
-        "Claude 整份读文件（%）",
-        "Codex 整份读文件（%）"
-      ],
-      "chg": [
-        "−45%",
-        "+35%",
-        "−42 点",
-        "−12 点"
-      ],
-      "scale": 1,
-      "foot": "量这组数时两个钩子只装在 Claude 上；Codex 本机记录约是官方用量页的七成，只比趋势。"
+      "chg": ["−45%", "−42%", "−55%", "−82%"],
+      "foot": "“现在”只有约一天半，满 7 天后更新；口径和局限见数据报告。"
     }
   },
   "en": {
-    "stair": {
-      "title": "Average cost per step (one tool call), in cents",
-      "sub": "−39% from the untuned baseline to now",
-      "foot": "Each bar covers the days after one rule change. Costs are estimates from a price table (see Methodology), not invoices.",
-      "bars": [
-        [
-          "Baseline",
-          "Sep 14–Oct 2"
-        ],
-        [
-          "Max effort",
-          "Oct 3–12"
-        ],
-        [
-          "Lower effort",
-          "Oct 13–Nov 4"
-        ],
-        [
-          "1 task/chat",
-          "Nov 5–10"
-        ],
-        [
-          "high/xhigh",
-          "Nov 10–11"
-        ],
-        [
-          "Read limits",
-          "Nov 11–16"
-        ]
-      ]
+    "fp": {
+      "title": "Every step re-reads the whole conversation",
+      "sub": "Where the tokens go, across every Claude Code session log on one workstation",
+      "reread": "Re-reading prior context ≈ 98–99%",
+      "fresh": "New input + output ≈ 1–2%",
+      "formula": "Cost ≈ context per step × steps × price",
+      "levers": [
+        ["① Context per step", "Short, stable rules", "Search, then read ≤60 lines", "Compact at ~250k tokens"],
+        ["② Steps", "One task, one conversation", "Self-check before review", "Fewer subagents and sessions"],
+        ["③ Price", "high for daily work", "xhigh only for final checks", "Light model for read-only"]
+      ],
+      "foot": "Data: Claude Code session logs from one workstation, 2026-09-14 to 11-18, counted with tools/stages.py"
     },
     "ba": {
-      "title": "Baseline (Sep 14–Oct 2) vs now (Nov 11 night–Nov 16)",
-      "sub": "Good and bad both shown. Idle hours are not counted as working hours.",
-      "legend": [
-        "Baseline",
-        "Now"
-      ],
-      "good": "Better",
-      "bad": "Worse",
-      "goodRows": [
+      "title": "Untuned (Sep 14–Oct 2) vs now (Nov 17–18)",
+      "sub": "Same workstation, same counting script. Shorter is better.",
+      "legend": ["Untuned", "Now"],
+      "rows": [
         "Cost per step (cents)",
         "Fresh input per step (k tokens)",
         "Whole-file reads (%)",
-        "Deliveries per working hour"
-      ],
-      "badRows": [
-        "Cost per delivery (USD)",
-        "Code chars written per USD",
-        "Subagent share of spend (%)",
         "Sessions over 250k context (%)"
       ],
-      "chg": [
-        "−39%",
-        "−43%",
-        "−35 pts",
-        "+74%",
-        "+19%",
-        "−21%",
-        "+27 pts",
-        "+10 pts"
-      ],
-      "foot": "Each row has its own scale; compare only the two bars in a row. Data: all sessions on one machine, each reply counted once."
-    },
-    "tw": {
-      "title": "67% of the 716 tests that took >10 min were waiting",
-      "sub": "4,212 test runs between Nov 11 and Nov 16.",
-      "parts": [
-        "Waiting",
-        "Slow run",
-        "Both"
-      ],
-      "times": "runs",
-      "lines": [
-        "Why the queue: test slots were cut from 8 to 4 (8 at once ran out of memory and froze a live service),",
-        "once to 1, with ~20 sessions wanting tests. Slow runs: mostly full suites at merge/review (median ~19 min)."
-      ],
-      "fix": "Fix (rules v70):",
-      "fixes": [
-        "1) one shared pool for sessions + tests (20)  2) full suites only for merge/review, max 2; dev runs targeted tests",
-        "3) 15-minute circuit breaker  4) no new tests when free memory is low. To be re-measured Nov 19."
-      ],
-      "foot": "Source: the test queue run log (runs.jsonl)."
-    },
-    "sv": {
-      "title": "One subagent run vs one fresh session (Nov 11 night–Nov 16)",
-      "legend": [
-        "Subagent",
-        "Fresh session"
-      ],
-      "rows": [
-        "Average cost per run (USD)",
-        "Context read at start (k tokens)",
-        "How many were started"
-      ],
-      "lines": [
-        "Per run, a subagent is cheaper. We overspent because we spawned too many (916 in ~4 days, $4,722).",
-        "To save: spawn fewer; do small lookups yourself by line range. Each row has its own scale."
-      ]
-    },
-    "cx": {
-      "title": "Does Codex behave the same? Busiest day vs Nov 15",
-      "sub": "Busiest day: Claude Oct 8, Codex Oct 31 (among days with local logs).",
-      "legend": [
-        "Busiest day",
-        "Nov 15"
-      ],
-      "rows": [
-        "Claude: prior context re-read per step (k)",
-        "Codex: prior context re-read per step (k)",
-        "Claude: whole-file reads (%)",
-        "Codex: whole-file reads (%)"
-      ],
-      "chg": [
-        "−45%",
-        "+35%",
-        "−42 pts",
-        "−12 pts"
-      ],
-      "scale": 10,
-      "foot": "When measured, the two hooks were only on Claude. Codex local logs are ~70% of its usage page: compare trends only."
+      "chg": ["−45%", "−42%", "−55%", "−82%"],
+      "foot": "“Now” is about 1.5 days; it will be updated after 7 days. Method and limits: see the data report."
     }
   }
 }

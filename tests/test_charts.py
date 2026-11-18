@@ -1,4 +1,4 @@
-"""Verify the migration preserves the historical chart data."""
+"""Verify the committed charts match the chart generator."""
 import importlib.util
 import tempfile
 import unittest
@@ -12,12 +12,12 @@ SPEC.loader.exec_module(CHARTS)
 
 
 class ChartTests(unittest.TestCase):
-    def test_historical_labels_and_values_are_preserved(self):
+    def test_committed_charts_match_generator(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory)
             CHARTS.generate(output)
             files = list(output.rglob("*.svg"))
-            self.assertEqual(len(files), 10)
+            self.assertEqual(len(files), 4)
             for file in files:
                 generated = ET.parse(file).getroot()
                 original = ET.parse(ROOT / "docs/images" / file.relative_to(output)).getroot()

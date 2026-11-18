@@ -4,17 +4,9 @@
 
 Use high for routine code and documentation work, read-only checks, and light review. Reserve xhigh for final review of money calculations, major refactors, or releases. Do not use max or medium as execution tiers. Start light reviews in fresh sessions without implementation context.
 
-## Historical measurements
+## Why effort is fixed per role
 
-These are historical measurements, not a cost promise for a new project. See the [data report](data-report.en.md) for the source data.
-
-| Period | Cost per step | Spend per day | Cost per delivery | Context over 250k |
-|---|---|---|---|---|
-| Untuned baseline (default effort) | 10.5 cents | about $390 | $16.6 | 33% |
-| Max effort everywhere | 9.8 cents | about $1,270 | $23.3 | 75% |
-| After switching to high / xhigh only | 7.5 cents | — | $10.1 | 45% |
-
-The “high / xhigh only” period is just 1 day; the sample is small, so use it only as a directional result.
+Cost ≈ context per step × steps × price, and model plus effort set the price: high is enough for daily work, and xhigh is kept for final checks where a mistake is costly. See the [data report](data-report.en.md) for the principle and measurements.
 
 ## Platform settings
 

@@ -2,9 +2,15 @@
 
 **简体中文** | [English](README.en.md)
 
-按需读取上下文，减少重复内容，省 Token。
-先运行本地 self-check 挡住改动错误，再在同一账号里分开写入与只读验收，降低返工。
+AI 编程助手每走一步都要把整段对话重读一遍，98–99% 的 token 花在重读上。所以 **花费 ≈ 每步上下文 × 步数 × 单价**，本仓库把三个乘数一起压下去：按需读取压每步上下文，本地自检和一事一对话压步数，按角色定档位压单价。
+
+同一台工作站实测：每步花费 10.5 → 5.8 美分（−45%），上下文超 25 万的会话 33% → 6%。口径和局限见[数据报告](docs/data-report.md)。
+
 运行 python3 tools/init.py --root ../my-project，五分钟接入你已有的 Git 项目。
+
+![第一性原理](docs/images/first-principles.svg)
+
+![未调整 vs 现在](docs/images/before-after.svg)
 
 规矩是纯文字，脚本可选。
 
@@ -56,4 +62,4 @@ init.py 和 self-check.py 在本仓库中；命令通过 --root 指向目标项�
 
 Claude Code、Codex 和 Gemini CLI 配置示例中的型号 ID 是占位值，使用前要替换成你已确认的型号。启用 Claude 原生钩子时，需把 hooks 和 tools/lib 目录复制到项目根目录；Windows 若无 python3 命令，可在设置中改为 python 或 py。只用规则文件不需要运行时。自检、定向测试和 Git 提交钩子是可选的；详细字段和本地数据位置见 gate.config.example.json 与[配置说明](docs/gate-config.md)。多人或多会话并行时再看[高级配置](docs/advanced.md)。
 
-效果因电脑配置、模型、项目而异。[历史数据报告](docs/data-report.md)保留原数字，不代表对新项目的效果承诺。**我们做错了什么**、改了什么，见[复盘](docs/lessons.md)。
+效果因电脑配置、模型、项目而异。[数据报告](docs/data-report.md)写明了口径和局限，不代表对新项目的效果承诺。

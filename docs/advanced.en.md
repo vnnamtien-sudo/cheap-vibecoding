@@ -6,7 +6,7 @@ The default is one person, one account, targeted tests and a 15-minute timeout. 
 
 ## Shared test pool
 
-For resource contention between sessions on one machine, set testQueue.mode to advanced in gate.config.json. Options include slots (historically 20), poolCountsSessions, minTestSlots, heavyMax, minFreeGB, staleMinutes and pollMs. Tune the pool to the machine. Configure sessionRoots explicitly; empty configuration does not scan personal logs. Atomic directory locks coordinate processes; status and stats read queue receipts.
+For resource contention between sessions on one machine, set testQueue.mode to advanced in gate.config.json. Options include slots (we use 20), poolCountsSessions, minTestSlots, heavyMax, minFreeGB, staleMinutes and pollMs. Tune the pool to the machine. Configure sessionRoots explicitly; empty configuration does not scan personal logs. Atomic directory locks coordinate processes; status and stats read queue receipts.
 
 The default targeted mode does not enable a shared pool. Use argument arrays and specific affected tests. A timeout exits with 124. POSIX process groups and Windows Job Objects clean up descendants.
 

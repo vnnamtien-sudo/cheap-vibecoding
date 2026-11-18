@@ -2,9 +2,15 @@
 
 [简体中文](README.md) | **English**
 
-Read only the context needed for the task to save tokens and avoid repeated content.
-Run a local self-check first, then separate implementation and read-only review in the same account to reduce rework.
+Every step an AI coding agent takes re-reads the whole conversation; 98–99% of tokens go to that re-reading. So **cost ≈ context per step × steps × price**, and this repo cuts all three: read on demand for context per step, a local self-check and one task per conversation for steps, and a fixed effort level per role for price.
+
+Measured on one workstation: cost per step 10.5 → 5.8 cents (−45%); sessions over 250k context 33% → 6%. Method and limits: see the [data report](docs/data-report.en.md).
+
 Run python3 tools/init.py --root ../my-project to connect your existing Git project in five minutes.
+
+![First principles](docs/images/en/first-principles.svg)
+
+![Untuned vs now](docs/images/en/before-after.svg)
 
 Rules are plain text; scripts are optional.
 
@@ -56,4 +62,4 @@ init.py and self-check.py are in this repository; --root points to the target pr
 
 The Claude Code, Codex, and Gemini CLI examples contain placeholder model IDs; replace them with confirmed IDs before use. To enable Claude's native hooks, copy the hooks and tools/lib directories into the project root. On Windows, if python3 is unavailable, change the hook command to python or py. Using only a rule file requires no runtime. Self-checks, targeted tests, and the Git hook are optional. See gate.config.example.json and [gate configuration](docs/gate-config.en.md) for fields and local data locations. Read [advanced configuration](docs/advanced.en.md) only when running multiple sessions or coordinating multiple people.
 
-Results vary by computer, model and project. The [historical report](docs/data-report.en.md) preserves its original numbers; they are not a promise for another project. **What we got wrong** and what we changed: see the [retrospective](docs/lessons.en.md).
+Results vary by computer, model and project. The [data report](docs/data-report.en.md) states the method and limits; it is not a promise for another project.

@@ -45,6 +45,6 @@ Python 使用 AST；JS/TS 使用词法分析，复杂别名、动态 import 与�
 
 Claude 可另外安装读取和测试钩子，见 examples/claude/settings.json；命令写 python3，Windows 改 python 或 py。Codex、DeepSeek、Gemini 使用规矩加可选 pre-commit，不假设它们具有相同钩子协议。
 
-## 脱敏与历史报告
+## 脱敏与数据报告
 
-`python3 tools/privacy-scan.py` 检查 Git 管理及未忽略的候选文本，回执 .gate/privacy.json 只列位置和规则，不回显命中值；二进制、链接及未知编码要求复核。它检查常见凭据与私密文本模式，项目专有名称通过 privacy.patterns 补充。忽略目录中的个人日志不会发布，也不属于该扫描范围。历史数据报告数字保持原样，不代表新项目效果；效果因电脑配置、模型、项目而异。
+`python3 tools/privacy-scan.py` 检查 Git 管理及未忽略的候选文本，回执 .gate/privacy.json 只列位置和规则，不回显命中值；二进制、链接及未知编码要求复核。它检查常见凭据与私密文本模式，项目专有名称通过 privacy.patterns 补充。忽略目录中的个人日志不会发布，也不属于该扫描范围。数据报告的数字来自我们一台机器，不代表新项目效果；效果因电脑配置、模型、项目而异。

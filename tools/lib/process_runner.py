@@ -99,7 +99,8 @@ def kill_tree(process, job=None):
         # shortcut: process groups cannot contain descendants that deliberately call setsid().
         try:
             os.killpg(process.pid, signal.SIGKILL)
-        except ProcessLookupError:
+        except (ProcessLookupError, PermissionError):
+            # macOS answers EPERM once only zombies are left in the group; callers still kill a live leader.
             pass
     elif process.poll() is None:
         process.kill()

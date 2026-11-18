@@ -2,7 +2,7 @@
 
 [简体中文](README.md) | **English**
 
-Every step an AI coding agent takes re-reads the whole conversation; 98–99% of tokens go to that re-reading. So **cost ≈ context per step × steps × price**, and this repo cuts all three: read on demand for context per step, a local self-check and one task per conversation for steps, and a fixed effort level per role for price.
+In three months (Aug 18 – Nov 18) our AI coding agents used about 302 billion tokens (Claude Code plus two Codex accounts), and 98–99% of them went to re-reading: every step re-reads the whole conversation. So **cost ≈ context per step × steps × price**, and this repo cuts all three: read on demand for context per step, a local self-check and one task per conversation for steps, and a fixed effort level per role for price.
 
 Measured on one workstation: cost per step 10.5 → 5.8 cents (−45%); sessions over 250k context 33% → 6%. Method and limits: see the [data report](docs/data-report.en.md).
 

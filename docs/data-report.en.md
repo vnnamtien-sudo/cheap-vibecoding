@@ -4,6 +4,8 @@
 
 Source: every Claude Code session log on one workstation (main sessions + subagents). The counting script is this repo's [`tools/stages.py`](../tools/stages.py); you can run it on your own logs.
 
+Three-month total (Aug 18 – Nov 18): Claude Code 222.5 billion tokens (local logs start Sep 14; earlier ones were not kept), Codex on this machine 26.5 billion (logs start Oct 18), the second Codex account 53.4 billion (from its account dashboard): about 302 billion in all. In the local logs, re-reading (cached input) is 98.4% of tokens: Claude Code 98.5%, Codex 97.7%. The before/after numbers below use Claude Code logs only.
+
 ## 1. First principles: you pay for re-reading
 
 Every step an AI coding agent takes (read a file, run a command, edit a file) sends the whole conversation, rules included, back to the model. In our logs, **98–99% of tokens are this re-reading**. New input and output are only 1–2%.
@@ -50,6 +52,6 @@ Per finished feature: each feature that passed review cost $26.8 on average from
 
 ## 4. Limits
 
-- One machine, one team, two months of data, tied to our business, codebase and habits. Numbers will differ on another project.
+- One team, three months of data (the before/after numbers come from one machine), tied to our business, codebase and habits. Numbers will differ on another project.
 - “Now” is only about 1.5 days (Nov 17 00:00 to the morning of Nov 18); it will be updated after 7 days.
 - Several practices were adopted together, so the table does not split the change by practice.
